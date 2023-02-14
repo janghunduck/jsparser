@@ -1,7 +1,5 @@
 //(function(){
 
-
-
 //html 문서가 정확해야 하지만, 그 전에 정확한 문서인지 체크가 되어야 한다.
 
 var Parhtml = function (html, targetfile) {
@@ -170,9 +168,6 @@ var Parhtml = function (html, targetfile) {
          };
 
 }
-
-
-
 
 Parhtml.prototype.checkKeywords = function (str) {
 
