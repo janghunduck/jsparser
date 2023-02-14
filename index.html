@@ -1,0 +1,33 @@
+<html>
+  <head>
+    <title>Read Text File Tutorial</title>
+    
+    <script type="text/javascript" src="htmlparser.js"></script>
+  </head>
+  <body>
+    <input type="file" onchange="loadFile(this.files[0])">
+    <input type="file" name="inputFile" id="inputFile">
+    <br>
+    <pre id="output"></pre>
+    <script>
+         var text;
+         async function loadFile(file) {
+            let text = await file.text();
+            document.getElementById('output').textContent = text;
+            
+            var xml = HTMLtoXML(text);
+            
+            console.log("",xml);
+         }
+         
+         
+        document.getElementById('inputFile').addEventListener('change', function() {
+           var file = new FileReader();
+           file.onload = () => {
+             document.getElementById('output').textContent = file.result;
+           }
+            file.readAsText(this.files[0]);
+        });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,276 @@
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<title>FCKeditor - Sample</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta name="robots" content="noindex, nofollow" />
+	<script type="text/javascript" src="util.js"></script>
+	<script type="text/javascript" src="logger.js"></script>
+	
+	<script type="text/javascript" src="htmlparser.js"></script>
+	<script type="text/javascript" src="jsparser.js"></script>
+
+</head>
+<body topmargin="0">
+
+<script type="text/javascript">
+// ========================================================================================================
+
+                var script = [];
+                var filename = '';
+                var html = '';           // html string
+
+                /* js or html */
+                function filetype(fname){
+                   var idx = fname.lastIndexOf('.')+1;
+                   return fname.substr(idx, fname.length - idx);
+                  
+                }
+
+                /* fcontent 가 linefeed 로 구성되지 않고 통째로 한줄로 들어와서 fcontent 는 한 라인씩 들어와서 구성된다. */
+                /* EOF 는 UI 단에서 하드코딩되어 들어온다. */
+                function rv_content(fcontent) {
+                   var tmp = fcontent;
+
+                   if ( fcontent == 'EOF' ) {
+                      return sd_scriptmodules();
+                   } else {
+                      html = html + tmp;
+                   }
+                   return tmp;
+                }
+
+                /* 대상 html 파일명을 받는다. */
+                function rv_file(val){
+                   filename = val;
+                   return filename;
+                }
+
+                /* UI에서 로그를 찍기위해 호출된다. */
+                function rv_log(){
+                   return llog;
+                }
+
+                /* UI가 js의 로그를 초기화 한다. */
+                function rv_logdelete(){
+                   llog = '';
+                }
+                
+                /* return script src part or head */
+                function sd_scriptmodules(){
+                   if (filename === ''){
+                      alert('no target html!');
+                      return [];
+                   }
+
+                   var stype = filetype(filename);
+
+                   if( stype === 'html') {
+                       var htmlparser = new Parhtml(html, filename);
+                       htmlparser.parserunit();                      // parse
+                       
+                       var tokens = htmlparser.tostringtokens();     // for log
+                       llog = llog + tokens;
+                       
+                       
+                       var arrscript = htmlparser.getInlineScript();  // for log - script of body or head part and two more part
+                       for(var i=0; i < arrscript.length; i++){
+                          llog = llog + '\n  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ \n'
+                          llog = llog + arrscript[i] + '\n';
+                       }
+
+                       return htmlparser.getTracefilelst();          // script of head
+                   } else {
+                       return [];
+                   }
+                }
+                
+                /* parse script or js */
+                /* return format : a,b,c | e, f | m, n */
+                function rv_scriptparse(){
+                   var result = '';
+                   if (script.length !== 0){
+                       var arrscript = htmlparser.getInlineScript();  // <script> part 들
+                       for(var i=0; i < arrscript.length; i++){
+                           var js = new jsparser(script);
+                           js.parserjs();
+                           
+                           if (i === arrscript.length-1){
+                               result = result + js.tostringtokens();                      
+                           } else {
+                               result = result + js.tostringtokens() + '|';
+                           }
+                       }
+                   }
+                   llog = llog + '\n  ~~~~~~~~~~~~~~~~~~ parse complete! ~~~~~~~~~~~~~~~~~~~~~ \n'
+                   return result;
+                }
+                
+
+
+                
+// ========================================================================================================
+
+                function concat(){
+                    var a1 = [ ['a','b','c','|'], ['a', 'b', 'v' , '|'],['x', 'y', 'z', 'e', '|']];
+                    var a2 = [ ['n','m'],['|'], ['l','k', 'v'], ['|'] ];
+                    var a3 = a1.concat(a2);
+                    
+                    return a3;
+                    
+                }
+                
+                function arrtest2(){
+                    var a1 = [ ['a','b','c'], ['a', 'b', 'v' ],['x', 'y', 'z', 'e'] ];
+
+                    return a1;
+
+                }
+
+
+                function trim(){
+                    var s = '       a';
+                    for (var i=0; i<s.length;i++){
+                       var idx = s.indexOf(' ');
+                       if (idx === 0){
+                           s = s.substring(1);
+                       } else {
+                           alert('['+s+']');
+                       }
+                       
+                    }
+                    
+                }
+                
+                function trim2(){
+                    var s = '     a';
+                    for (var i=0; i < s.length ;i++){
+                       var c = s.charAt(0);
+                       
+                       if (c === ' '){
+                          s = s.substring(1);
+                       } else {
+                          return s;
+                       }
+                    }
+                    
+                }
+                
+                function trim_l(){
+                    var s = '                     a b   ';
+                    while(s){
+                       var c = s.charAt(0);
+                       if (c === ' '){
+                          s = s.substring(1);
+                       } else {
+                          return s;
+                       }
+                       if (s.length === 0)  break;
+                    }
+                }
+                
+                function trim_r(){
+                    var s = 'a           ';
+                    while(s){
+                       var idx = s.lastIndexOf(' ');
+                       var c = s.charAt(idx);
+                       
+                       if (c === ' '){
+                          s = s.substring(0, s.length-1);
+                       } else {
+                          return s;
+                       }
+                       if (s.length === 0)  break;
+                    }
+                }
+                
+                /* s.match(/\{(.*)\}/s) 를 대체한다.  */
+                /* jsparser.prototype.getbracepart 로 마이그레이션  */
+                function fparser(){
+                     var s = "ab = function() { alert('ab'); {  a  { c } b} } aaa{e}";
+                     var target = '{';
+                     var pos = 0;
+
+                     var closepos = s.indexOf('}');
+                     var closestr = s.substr(0, closepos);                   // { alert('ab'); {  a  { c
+                     var cnt = countRepeatStr(closestr, '{');
+
+                     var nextstr = s.substr(closepos, s.length - closepos);  //  } b} } aaa{e}
+
+                     var foundPos = 0;
+                     for(var i=0; i<cnt;i++){
+                         foundPos = nextstr.indexOf('}', pos)
+                         //alert(foundPos +'   /'+ pos);
+                         if(foundPos == -1) break;
+                         pos = foundPos + 1;
+                     }
+                     
+                     return closestr + nextstr.substr(0, foundPos+1);       // } b} }
+                     
+                }
+
+
+                function pt(){
+                    var s = "ab = function() { alert('ab'); {  a  { c } b} } aaa{e}";
+                    //var arr = s.match(/\{(.*)\}/s) || null || [];  // reg expression 은 구버젼에서는 안된다.
+                    var reg = new RegExp('\{(.*)\}', 'g');
+                    
+                    return reg.exec(s);
+                }
+                
+                function pt2(){
+                   var reg = new RegExp('^[1-9]+', 'm');
+                   return reg.exec('a123\n456')
+                }
+                
+                
+                function recivefname(fname){
+                    alert(fname[0]);
+                    return fname[0];
+                }
+
+                function recivefcontent(fcontent){
+                   var tmp = fcontent;
+
+                   if ( fcontent == 'EOF' ) {
+                      html = '';
+                   } else {
+                      html = html + tmp;
+                   }
+
+                   return fcontent;
+                }
+
+                
+                
+                function a(){
+                  
+                  
+                    var ssa = 'a #10' + 'b  #13' + 'c' + '#0';
+                    alert(ssa);
+                    return ssa;
+                }
+
+
+                function testa(){
+                    
+                    var sst = ' a \n';
+                    sst = sst + 'b \n';
+                        
+                    alert('testa sucss!! \n' + sst );
+                    return sst;
+
+                }
+
+                function arrtest(){
+                   var arr = [];
+                   arr.push('oops');
+                   arr.push('pussy');
+                   return arr;
+                }
+                
+
+ </script>
+
+</body>
+</html>

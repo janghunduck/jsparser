@@ -1,0 +1,111 @@
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<title>FCKeditor - Sample</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta name="robots" content="noindex, nofollow" />
+	<script type="text/javascript" src="htmlparser.js"></script>
+	<script type="text/javascript" src="jsparser.js"></script>
+
+</head>
+<body topmargin="0">
+
+<script type="text/javascript">
+
+
+                var htmlscript = '';
+                var filename = '';
+                var htmlparser = new Parhtml('', '');
+
+                var str = '';
+
+                // js or html
+                function filetype(fname){
+                   var idx = fname.lastIndexOf('.');
+                   return fname.substr(idx, fname.length - idx);
+                  
+                }
+
+                function recivefname(fname){
+                    alert(fname[0]);
+                    return fname[0];
+                }
+
+                function recivefcontent(fcontent){
+                   var tmp = fcontent;
+
+                   if ( fcontent == 'EOF' ) {
+                      str = '';
+                   } else {
+                      str = str + tmp;
+                   }
+
+                   return str;
+                }
+                
+                
+                function rv_content(fcontent) {
+                     alert(fcount);
+                
+                }
+
+                // recive target html
+                function rv_file(val){
+                   filename = val;
+                }
+                
+                function sd_ScriptModules(){
+                   if (filename === ''){
+                      alert('no target html!');
+                      return [];
+                   }
+
+                   var stype = filetype(filename);
+                   if( stype === 'html') {
+                       return htmlparser.getTracefilelst();
+                   } else {
+                       return [];
+                   }
+                }
+                
+                // script src list
+                function step_s(){
+                   if (filename === ''){
+                      alert('no target html!');
+                      return [];
+                   }
+                   
+                   var stype = filetype(filename);
+                   if ( stype === 'js'){
+                       // jsparser
+                   } else if ( stype === 'html') {
+                       // jsparser js in <script>
+                       return htmlparser.getTracefilelst();
+                   } else {
+                       alert('supported file type is html or js!');
+                       return [];
+                   }
+                }
+                
+                function a(){
+                  alert('a!');
+                }
+
+
+                function testa(){
+                    alert('testa sucss!!' );
+
+                }
+
+                function arrtest(){
+                   var arr = [];
+                   arr.push('oops');
+                   arr.push('pussy');
+                   return arr;
+                }
+                
+
+ </script>
+
+</body>
+</html>
