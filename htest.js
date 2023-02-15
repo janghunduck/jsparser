@@ -841,79 +841,15 @@ sss=
 
 
 sss =
-
-" <html xmlns='http://www.w3.org/1999/xhtml'> \n" +
-" <head> \n" +
-" 	<title>FCKeditor - Sample</title> \n" +
-" 	<meta http-equiv='Content-Type' content='text/html; charset=utf-8' /> \n" +
-" 	<meta name='robots' content='noindex, nofollow' /> \n" +
-" 	<link href='../sample.css' rel='stylesheet' type='text/css' /> \n" +
-" 	<script type='text/javascript' src='../../fckeditor.js'></script> \n" +
-"         <script type='text/javascript' src='../../editor/js/fckeditorcode_ie.js'></script> \n" +
-"         <script type='text/javascript' src='../../fckconfig.js'></script> \n" +
-"  \n" +
-" </head> \n" +
-" <body topmargin='0'> \n" +
-"  \n" +
-" 	<form action='sampleposteddata.asp' method='post' target='_blank'> \n" +
-" 	   <script type='text/javascript'> \n" +
-"                 <!-- // oFCKeditor.BasePath = '/fckeditor/' ;	// '/fckeditor/' is the default value. --> \n" +
-"  \n" +
-"                 var sBasePath = document.location.href.substring(0,document.location.href.lastIndexOf('_samples')) ; \n" +
-"  \n" +
-"                 var oFCKeditor = new FCKeditor( 'FCKeditor1' ) ; \n" +
-"  \n" +
-"                 oFCKeditor.ToolbarSet   = 'Keditor'; // 'Keditor'  see kcfconfig.js; Empty Default \n" +
-"                 oFCKeditor.BasePath	= sBasePath ; \n" +
-"                 oFCKeditor.Height	= '100%' ; \n" +
-"                 oFCKeditor.Width	= '100%' ; \n" +
-"  \n" +
-"                 //oFCKeditor.Config.EnterMode  = 'br'; \n" +
-"                 oFCKeditor.Config['EnterMode'] = 'br' ; \n" +
-"                 oFCKeditor.Config['ShiftEnterMode'] = 'br' ; \n" +
-"                 //alert(oFCKeditor.Config['EnterMode']); \n" +
-"                 oFCKeditor.Value	= '<a href='http://www.fckeditor.net/'>FCKeditor<\/a>' ; \n" +
-"  \n" +
-"                 oFCKeditor.Create() ; \n" +
-"  \n" +
-" 	   </script> \n" +
-" 	   <br /> \n" +
-" 	 <!--input type='submit' value='Submit' /--> \n" +
-" 	</form> \n" +
-" </body> \n" +
-" </html> \n" +
-"  \n" +
-" <!-- ---------------------------------------- --> \n" +
-" <!--           For Keditor Interface          --> \n" +
-" <!-- ---------------------------------------- --> \n" +
-"  \n" +
-" <script type='text/javascript'> \n" +
-"  \n" +
-"         // Not Usage \n" +
-"         function testa(){ \n" +
-"           alert('testa sucss!!' ); \n" +
-"           //alert(oFCKeditor.Value); \n" +
-"           //alert(document.all.FCKeditor1.value); \n" +
-"  \n" +
-"           var oFCKInstance = FCKeditorAPI.GetInstance( 'FCKeditor1' ); \n" +
-"           oFCKInstance.Config['EnterMode'] = 'br' ; \n" +
-"           alert(oFCKInstance.GetHTML()); \n" +
-"  \n" +
-"         } \n" +
-
-" </script> \n" +
-"  \n" +
-"  \n" ;
-
-
-sss =
 " <html xmlns='http://www.w3.org/1999/xhtml'> \n" +
 " <head> \n" +
 " <title>   abcd -efg   </title> \n" +
+
 "  <script type='text/javascript' src='../../fckeditor.js'></script> \n" +
 "  <script type='text/javascript' src='../../aaa.js'></script> \n" +
 "  <script type='text/javascript' src='./aaaasa.js'></script> \n" +
 "  <script type='text/javascript' src='fffff.js'></script> \n" +
+"         <script src='lib/jquery-3.4.1.min.js'></script> \n" +
 "  \n" +
 " </head> \n" +
 " <body> \n" +
@@ -931,6 +867,67 @@ sss =
 " </body> \n" +
 "  \n" +
 " </html> \n" ;
+
+
+
+
+sss =
+
+" <html xmlns='http://www.w3.org/1999/xhtml'> \n" +
+" <head> \n" +
+" 	<meta http-equiv='Content-type' content='text/html;charset=UTF-8' /> \n" +
+" </head> \n" +
+" <body topmargin='0'> \n" +
+"  \n" +
+" 	<form action='sampleposteddata.asp' method='post' target='_blank'> " +
+" 	   <script type='text/javascript'> " +
+// "                 <!-- // oFCKeditor.BasePath = '/fckeditor/' ;	// '/fckeditor/' is the default value. --> \n" +
+// "  \n" +
+// "                 var sBasePath = document.location.href.substring(0,document.location.href.lastIndexOf('_samples')) ; \n" +
+// // "  \n" +
+// "                 var oFCKeditor = new FCKeditor( 'FCKeditor1' ) ; \n" +
+// "  \n" +
+// "                 oFCKeditor.ToolbarSet   = 'Keditor'; // 'Keditor'  see kcfconfig.js; Empty Default \n" +
+// "                 oFCKeditor.BasePath	= sBasePath ; \n" +
+// "                 oFCKeditor.Height	= '100%' ; \n" +
+// "                 oFCKeditor.Width	= '100%' ; \n" +
+// "  \n" +
+// "                 //oFCKeditor.Config.EnterMode  = 'br'; \n" +
+// "                 oFCKeditor.Config['EnterMode'] = 'br' ; \n" +
+// "                 oFCKeditor.Config['ShiftEnterMode'] = 'br' ; \n" +
+// "                 //alert(oFCKeditor.Config['EnterMode']); \n" +
+// "                 oFCKeditor.Value	= '<a href='http://www.fckeditor.net/'>FCKeditor<\/a>' ; \n" +
+// "  \n" +
+// "                 oFCKeditor.Create() ; \n" +
+// "  \n" +
+ " 	   </script> \n" +
+ " 	   <br   \> \n" +
+ " 	 <!-- input type='submit' value='Submit'  --> " +
+" 	</form> \n" +
+" </body> \n" +
+" </html> \n" ;
+// "  \n" +
+// " <!-- ---------------------------------------- --> \n" +
+// " <!--           For Keditor Interface          --> \n" +
+// " <!-- ---------------------------------------- --> \n" +
+// "  \n" +
+// " <script type='text/javascript'> \n" +
+// "  \n" +
+// "         // Not Usage \n" +
+// "         function testa(){ \n" +
+// "           alert('testa sucss!!' ); \n" +
+// "           //alert(oFCKeditor.Value); \n" +
+// "           //alert(document.all.FCKeditor1.value); \n" +
+// "  \n" +
+// "           var oFCKInstance = FCKeditorAPI.GetInstance( 'FCKeditor1' ); \n" +
+// "           oFCKInstance.Config['EnterMode'] = 'br' ; \n" +
+// "           alert(oFCKInstance.GetHTML()); \n" +
+// "  \n" +
+// "         } \n" +
+// 
+// " </script> \n" +
+// "  \n" +
+// "  \n" ;
 
 
 

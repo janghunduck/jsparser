@@ -87,7 +87,7 @@ var jsparser = function (script) {
              this.nextchar = this.lines.charAt(1);
 
 
-             //console.log("%s, %d", a, b);
+             //console.log("%s", a);
              switch (true) {
 
                  case a === "'":
@@ -103,6 +103,15 @@ var jsparser = function (script) {
                      this.addone();
                      break;
                      */
+                 case a === '\t':
+                     this.skiptoken();
+                     break;
+                 case a === '!':
+                     if (this.nextchar === '-') {                // <!-- --> comment, html 파일 안에서 <script> 태크 안에서 Html주석을 넣을 수 있다.
+                          var idx = this.lines.indexOf('-->') + 1;
+                          this.lines = this.lines.substring(idx + '-->'.length);
+                     }
+                     break;
                  case (a >= 'A' && a <= 'Z') || (a >= 'a' && a <= 'z') || a === '_' || a === '@' || a === '-':  // 문자
                     // console.log("a=", a);
                      this.addone();
