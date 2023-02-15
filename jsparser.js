@@ -385,7 +385,7 @@ jsparser.prototype.reconizetf = function (){
 // tp_if  : Immediately invoked function
 jsparser.prototype.reconizeif = function (){
     //var str = this.backupline.replace(/(\s*)/g, ''); // 모든공백을 지운다.
-    var str = this.backupline.c_replaceAll(this.backupline, ' ', '');
+    var str = this.backupline.c_replaceAllChar(this.backupline, ' ', '');
     return ((this.recognizecommonfs())
          && (str[0] === '(')
          && (str.indexOf('(function') !== -1)
@@ -830,13 +830,13 @@ jsparser.prototype.getcurrline = function(){
 // char 다음 문자를 가져온다.
 jsparser.prototype.getnextchar = function (char) {
     //var str = this.backupline.replace(/(\s*)/g, ''); // 모든공백을 지운다.
-    var str = this.backupline.c_replaceAll(this.backupline, ' ', '');
+    var str = this.backupline.c_replaceAllChar(this.backupline, ' ', '');
     var idx1 = str.indexOf(char);
     if (idx1 > -1) {
         return str.charAt(idx1+1);
     } else if (str.length = idx1){  // idx가 라인의 마지막이면 다음 라인의 첫 문자를 가져온다.
        //var str2 = this.nextline.replace(/(\s*)/g, ''); // 모든공백을 지운다.
-       var str2 = this.nextline.c_replaceAll(this.nextline, ' ', '');
+       var str2 = this.nextline.c_replaceAllChar(this.nextline, ' ', '');
        return str2.charAt(0);
     } else {
        // error

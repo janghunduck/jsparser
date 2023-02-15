@@ -19,8 +19,8 @@ var Parhtml = function (html, targetfile) {
          this.depth = 0;
          this.tagdata = '';
 
-         this.keywords = makearray("html,head,title,body,table,tr,td,div,meta,link,script,p,span,img,input,select,option,b,button,a");
-         this.metalinktags = makearray("meta,link,input,img");           // <  /> 시작과 함께 닽힘
+         this.keywords = makearray("html,head,title,body,table,tr,td,div,meta,link,script,p,span,img,input,select,option,b,button,a,form");
+         this.metalinktags = makearray("meta,link,input,img,hr,br");           // <  /> 시작과 함께 닽힘, <../> 와 <..> 둘다 쓸수 있고 </..> 형식이 없다.
 
          var isDepthEnd = false;                               // depth 가 0 이면 True 아니면 false
          var isMetalink = false;                               // <meta .../> 와 같은 유형 처리에서 isDepthEnd =0 이고 </ 형식이 아닌 경우 true
@@ -54,16 +54,15 @@ var Parhtml = function (html, targetfile) {
                      break;
                      */
                  case a === '!': 
-                     if (this.nextchar === '-') {           // <!-- -->
+                     if (this.nextchar === '-') {                                      // <!-- -->
                           var idx = this.lines.indexOf('-->') + 1;
                           this.lines = this.lines.substring(idx + '-->'.length);
-                     } else {                               // <!DOCTYPE HTML ....>
+                     } else {                                                          // <!DOCTYPE HTML ....>
                          var idx = this.lines.indexOf('>') + 1;
                          this.lines = this.lines.substring(idx);
                      }
                      break;
                  case a === '\n' || a === '\t':
-                     //console.log(".............[%s]", this.nexttoken);
                      this.nexttoken = this.nexttoken.c_trim(this.nexttoken);
                      if (this.nexttoken !== '') this.updatetokendata(this.tokenobj.length-1, 'data', this.nexttoken);
 
@@ -76,7 +75,7 @@ var Parhtml = function (html, targetfile) {
                              if (index !== -1) {
                                 this.tagdata = this.lines.substring(0, index);
                                 this.lines = this.lines.substring(index);
-                                if (this.checkMetalinktags(this.nexttoken)) this.depth--;   // <link  ..../> 형태 처리
+                                if (this.checkMetalinktags(this.nexttoken)) { this.depth--; }   // <link  ..../> 형태 처리
                              } 
                          } else {
                              try { throw Error(' Keywords 에 존재하지 않습니다. '); } catch(e) { this.skiptoken(); };
@@ -104,7 +103,9 @@ var Parhtml = function (html, targetfile) {
                      isBracketInOut = true;
                      break;
                  case a === '>':
+                     //console.log("<<<<<<<<<<<<<<<<<<<<<[%s]", this.nexttoken);
 
+                     //if (this.nexttoken.c_trim(this.nexttoken) === ''){  this.skiptoken(); break; }
                      if ((isDepthEnd) && (!isMetalink)) { this.skiptoken(); break; };                 // depth 가 마지막이면 나감 depth === 0 경우
                      this.token = this.nexttoken;
                      this.inserttoken();                                                              // token 생성, token 마다 계속 생성된다.
@@ -210,7 +211,19 @@ Parhtml.prototype.updatetokendata = function (index, key, data) {
 Parhtml.prototype.updatetagdata = function (index, key) {
          node = this.tokenobj[index];
          node[key] = this.tagdata;
+
+         var idx1 = this.tagdata.indexOf('onclick');
+         if (idx1 !== -1){
+             var str1 = this.tagdata.substr(idx1, this.tagdata.length - idx1);
+             var idx2 = str1.indexOf(';');
+             var str2 = str1.substr(0, idx2);
+             //this.tagevent = str2;
+             node['tagevent'] = str2;
+         }
+
          this.tagdata = '';
+         
+         
 }
 
 
@@ -220,6 +233,7 @@ Parhtml.prototype.inserttoken = function () {
          node.depth   = this.depth;
          node.data    = '';
          node.tagdata = '';
+         node.tagevent = '';
          this.tokenobj.push(node);
 
          return node;
@@ -297,7 +311,7 @@ Parhtml.prototype.tostringtokens = function () {
            //n = new Object();
            n = this.tokenobj[i];
            if (n.data == undefined) n.data = '';
-           str = str + n.depth + ' | ' + n.tagname + ' | ' + n.data + '\n';
+           str = str + n.depth + ' | ' + n.tagname + ' | ' + n.data + ' | ' + n.tagevent + '\n';
 
            console.log("=>", this.tokenobj[i]);
 
@@ -379,7 +393,7 @@ Parhtml.prototype.getTracefilelst = function () {
     
     var currdir = '';
     this.fname === '' ? currdir = getFileAbsolutePath() : currdir = getFileAbsolutePath(this.fname);
-    //console.log("[getTracefilelst]%s",currdir);
+    console.log("[getTracefilelst]%s",currdir);
                   
     for ( var i = 0; i < this.tokenobj.length; i++ ){
            var node = this.tokenobj[i];
@@ -388,9 +402,15 @@ Parhtml.prototype.getTracefilelst = function () {
               if (idx !== -1){
                   var str = node.tagdata.substr(idx, node.tagdata.length - idx);
                   str = rangestr (str, "'", "'");                                // ../../aaa.js, ./ab.js
-                  currdir = delRepeatLastStr(currdir, '/', countRepeatStr(str, '..'));
+                  var count = countRepeatStr(str, '..');
+                  console.log("src=[%s] [%d] ", str, count);
+                  /**
+                   ../ 상위디렉
+                   ./  현재 디렉
+                  */
+                  str = delRepeatLastStr(str, '/', count);
 
-                  //console.log("src=[%s] [%d] ", str, countRepeatStr(str, '..'));
+                  
                   //var idx2 = str.lastIndexOf('/');
                   //str = str.substr(idx2, str.length - idx2);
                   arr.push(currdir + '/' + str);

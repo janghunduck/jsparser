@@ -1,0 +1,63 @@
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<title>FCKeditor - Sample</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta name="robots" content="noindex, nofollow" />
+	<link href="../sample.css" rel="stylesheet" type="text/css" />
+	<script type="text/javascript" src="../../fckeditor.js"></script>
+        <script type="text/javascript" src="../../editor/js/fckeditorcode_ie.js"></script>
+        <script type="text/javascript" src="../../fckconfig.js"></script>
+
+</head>
+<body topmargin="0">
+
+	<form action="sampleposteddata.asp" method="post" target="_blank">
+	   <script type="text/javascript">
+                <!-- // oFCKeditor.BasePath = '/fckeditor/' ;	// '/fckeditor/' is the default value. -->
+
+                var sBasePath = document.location.href.substring(0,document.location.href.lastIndexOf('_samples')) ;
+
+                var oFCKeditor = new FCKeditor( 'FCKeditor1' ) ;
+
+                oFCKeditor.ToolbarSet   = 'Keditor'; // 'Keditor'  see kcfconfig.js; Empty Default
+                oFCKeditor.BasePath	= sBasePath ;
+                oFCKeditor.Height	= '100%' ;
+                oFCKeditor.Width	= '100%' ;
+
+                //oFCKeditor.Config.EnterMode  = 'br';
+                oFCKeditor.Config["EnterMode"] = 'br' ;
+                oFCKeditor.Config["ShiftEnterMode"] = 'br' ;
+                //alert(oFCKeditor.Config["EnterMode"]);
+                oFCKeditor.Value	= '<a href="http://www.fckeditor.net/">FCKeditor<\/a>' ;
+
+                oFCKeditor.Create() ;
+
+	   </script>
+	   <br />
+	 <!--input type="submit" value="Submit" /-->
+	</form>
+</body>
+</html>
+
+<!-- ---------------------------------------- -->
+<!--           For Keditor Interface          -->
+<!-- ---------------------------------------- -->
+
+<script type="text/javascript">
+
+        // Not Usage
+        function testa(){
+          alert('testa sucss!!' );
+          //alert(oFCKeditor.Value);
+          //alert(document.all.FCKeditor1.value);
+
+          var oFCKInstance = FCKeditorAPI.GetInstance( 'FCKeditor1' );
+          oFCKInstance.Config["EnterMode"] = 'br' ;
+          alert(oFCKInstance.GetHTML());
+
+        }
+
+
+</script>
+

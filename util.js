@@ -218,7 +218,8 @@ String.prototype.c_trim = function(s){
     return s;
 }
 
-String.prototype.c_replaceAll = function(s, tochar, fromchar){
+// 한 문자만 바꿀수 있다.
+String.prototype.c_replaceAllChar = function(s, tochar, fromchar){
 
     var result = '';
     //console.log("[%s]", fromchar);
@@ -234,7 +235,87 @@ String.prototype.c_replaceAll = function(s, tochar, fromchar){
     return result;
 }
 
+String.prototype.c_replaceAll = function(source,target){
+   var val = this;
+   while(val.indexOf(source)>-1){
+      val = val.replace(source,target);
+   }
+   return val;
+}
 
+/*
+java
+public String replace(char oldChar, char newChar) {
+       if (oldChar != newChar) {
+           int len = value.length;
+           int i = -1;
+           char[] val = value; // avoid getfield opcode
+
+           while (++i < len) {
+               if (val[i] == oldChar) {
+                   break;
+               }
+           }
+           if (i < len) {
+               char buf[] = new char[len];
+               for (int j = 0; j < i; j++) {
+                   buf[j] = val[j];
+               }
+               while (i < len) {
+                   char c = val[i];
+                   buf[i] = (c == oldChar) ? newChar : c;
+                   i++;
+               }
+               return new String(buf, true);
+           }
+       }
+       return this;
+   }
+   
+   
+c++
+string replace(string word, string target, string replacement){
+    int len, loop=0;
+    string nword="", let;
+    len=word.length();
+    len--;
+    while(loop<=len){
+        let=word.substr(loop, 1);
+        if(let==target){
+            nword=nword+replacement;
+        }else{
+            nword=nword+let;
+        }
+        loop++;
+    }
+    return nword;
+
+}
+
+std::string str_replace(
+    std::string sHaystack, std::string sNeedle, std::string sReplace,
+    size_t nTimes=0)
+{
+    size_t found = 0, pos = 0, c = 0;
+    size_t len = sNeedle.size();
+    size_t replen = sReplace.size();
+    std::string input(sHaystack);
+
+    do {
+        found = input.find(sNeedle, pos);
+        if (found == std::string::npos) {
+            break;
+        }
+        input.replace(found, len, sReplace);
+        pos = found + replen;
+        ++c;
+    } while(!nTimes || c < nTimes);
+
+    return input;
+}
+ */
+   
+   
 
 
 
