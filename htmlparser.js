@@ -74,7 +74,7 @@ var Parhtml = function (html, targetfile) {
                  case a === ' ':   // 공백처리
                      //console.log("---------------->[%s]", this.nexttoken);
                      if (isBracketInOut) {                                       // < > 안에 있다.
-                         if (this.checkKeywords(this.nexttoken)){                /* keywords 로서 존재하는지 체크 */
+                         if (this.checkKeywords(this.nexttoken)){                /* keywords 로서 존재하는지 체크  checkStringInArray(this.keywords, this.nexttoken) 로 변경요함  */
                              var index = findChar(this.lines, '>');              // tagdata 를 얻는다.
                              if (index !== -1) {
                                 this.tagdata = this.lines.substring(0, index);
@@ -179,7 +179,11 @@ var Parhtml = function (html, targetfile) {
 
                      break;
 
-                 default:  break;
+                 default:
+                     //throw Error("Error : swich default, char is not definition, [%s]", a);
+                     window.alert("[Fatal Error] : swich default, char is not definition, [" + a + "]" );
+                     this.skiptoken();
+                     break;
 
              }
              return true;

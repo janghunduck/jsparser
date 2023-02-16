@@ -881,22 +881,22 @@ sss =
 "  \n" +
 " 	<form action='sampleposteddata.asp' method='post' target='_blank'> " +
 " 	   <script type='text/javascript'> " +
-// "                 <!-- // oFCKeditor.BasePath = '/fckeditor/' ;	// '/fckeditor/' is the default value. --> \n" +
-// "  \n" +
-// "                 var sBasePath = document.location.href.substring(0,document.location.href.lastIndexOf('_samples')) ; \n" +
-// // "  \n" +
-// "                 var oFCKeditor = new FCKeditor( 'FCKeditor1' ) ; \n" +
-// "  \n" +
-// "                 oFCKeditor.ToolbarSet   = 'Keditor'; // 'Keditor'  see kcfconfig.js; Empty Default \n" +
-// "                 oFCKeditor.BasePath	= sBasePath ; \n" +
-// "                 oFCKeditor.Height	= '100%' ; \n" +
-// "                 oFCKeditor.Width	= '100%' ; \n" +
-// "  \n" +
-// "                 //oFCKeditor.Config.EnterMode  = 'br'; \n" +
-// "                 oFCKeditor.Config['EnterMode'] = 'br' ; \n" +
-// "                 oFCKeditor.Config['ShiftEnterMode'] = 'br' ; \n" +
-// "                 //alert(oFCKeditor.Config['EnterMode']); \n" +
-// "                 oFCKeditor.Value	= '<a href='http://www.fckeditor.net/'>FCKeditor<\/a>' ; \n" +
+    "                 <!--  oFCKeditor.BasePath = '/fckeditor/' ; --> \n" +
+   "  \n" +
+    "                 var sBasePath = document.location.href.substring(0,document.location.href.lastIndexOf('_samples')) ; \n" +
+     "  \n" +
+    "                 var oFCKeditor = new FCKeditor( 'FCKeditor1' ) ; \n" +
+    "  \n" +
+     "                 oFCKeditor.ToolbarSet   = 'Keditor';   \n" +
+     "                 oFCKeditor.BasePath	= sBasePath ; \n" +
+      "                 oFCKeditor.Height	= '100%' ; \n" +
+     "                 oFCKeditor.Width	= '100%' ; \n" +
+     "  \n" +
+    "                 oFCKeditor.Config.EnterMode  = 'br'; \n" +
+    "                 oFCKeditor.Config['EnterMode'] = 'br' ; \n" +
+    "                 oFCKeditor.Config['ShiftEnterMode'] = 'br' ; \n" +
+  "                 alert(oFCKeditor.Config['EnterMode']); \n" +
+//  "                 oFCKeditor.Value	= '<a href='http:www.fckeditor.net/'>FCKeditor<\/a>' ; \n" +
 // "  \n" +
 // "                 oFCKeditor.Create() ; \n" +
 // "  \n" +

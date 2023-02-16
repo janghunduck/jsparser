@@ -13,6 +13,15 @@ function findChar(str, char){
     return -1;
 }
 
+function checkStringInArray(arr, checkString){
+    for(var i=0; i < arr.length; i++) {
+        if (arr[i] === checkString) {
+          return true;
+        }
+    }
+    return false;
+}
+
 function getFileAbsolutePath(){
     var currfile = window.location.pathname;
 
