@@ -1,5 +1,51 @@
 
 
+var keywords = makearray("html,head,title,body,table,tr,td,div,meta,link,script,p,span,img,input,select,option,b,button,a,form,hr,br");
+var metalinktags = makearray("meta,link,input,img,hr,br");
+
+/*
+Parhtml.prototype.checkKeywords = function (str) {
+
+         for(var i=0; i < keywords.length; i++) {
+             //console.log("%s  === %s", this.keywords[i], str);
+             if (keywords[i] === str) {
+                return true;
+             }
+         }
+         return false;
+}
+
+
+Parhtml.prototype.checkMetalinktags = function (str) {
+
+         for(var i=0; i < this.metalinktags.length; i++) {
+             //console.log("%s  === %s", this.metalinktags[i], str);
+             if (this.metalinktags[i] === str) {
+                return true;
+             }
+         }
+         return false;
+}
+*/
+
+function checkMetalinktags(str){
+    for(var i=0; i < metalinktags.length; i++) {
+        if (metalinktags[i] === str) {
+            return true;
+        } 
+    }
+    return false;
+}
+
+function checkKeywords(str){
+    for(var i=0; i < keywords.length; i++) {
+        if (keywords[i] === str) {
+            return true;
+        }
+    }
+    return false;
+}
+
 
 
 

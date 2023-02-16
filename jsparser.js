@@ -43,7 +43,7 @@ var jsparser = function (script) {
 
          this.tokenarray = [];
          this.tokens = [];            // 라인별로 모든 토큰을 가짐
-         this.linenumber = 0;
+         this.linenumber = 1;
 
          this.tokenobj = []; //[ {tagname: depth: data:},{} ... {n} ] 배열에 그냥 object를 나열한다.
          this.depth = 0;     // 함수 안의 함수
@@ -85,7 +85,7 @@ var jsparser = function (script) {
          //this.lines = "exports.add = function ab(){} "
          //this.lines = "const {add, sub} = require('./mode.js');"
          //this.lines = " var o = {\n name: 'linda', \n sex: 'women', size, \n me: intro(){}, \n getOlder(){}, \n sayhello : function() { \n alert('hi');  }}" ;
-         //this.lines = "let ab = require('js2flowchart'); ";
+        // this.lines = "let ab = require('js2flowchart'); ";
          //this.lines = "$('.frame_id, #frame_class').show()";
          //this.lines = "$(window).load( game.run() )";
          //this.lines = "$(document).ready( function (){}) ";
@@ -114,12 +114,8 @@ var jsparser = function (script) {
              switch (true) {
 
                  case a === "'":
-                     /*
-                     if (this.nexttoken !== ''){                      // require('aaa.js'); 처리를 위해 추가, 문제가 있는지 확인
-                        this.tokenarray.push(this.nexttoken);
-                     }
-                     */
-                     this.skiptoken();//this.addone();  // skiptoken() 으로
+                     this.skiptoken();
+                     this.insertstring(a);
                      break;
                  /*case a === '"':
                      this.addone();
@@ -149,10 +145,7 @@ var jsparser = function (script) {
                      this.addone();
                      break;
                  case code === 59 || code === 0 || code === 10 || code === 13 || code === 0x2028 || code === 0x2029: // 0: eof, 59: ;
-                     //console.log("a====================%s, code=%d", a, code);
-                     //if (code !== 0) {
-                        //if (this.eatwhitespace()) break;
-                     //}
+ 
                      this.nexttoken = this.nexttoken.c_trim(this.nexttoken);
                      
 //                      console.log("currline = %s", this.currline);
@@ -165,6 +158,9 @@ var jsparser = function (script) {
                      this.inserttoken();                                            // tokens 에 넣는다.
                      this.inittoken();                                              // 모두 초기화
                      this.skiptoken();
+                     
+                     /* Here getnextline(), getcurrline() */
+                     
                      this.linenumber++;
                      break;
 
@@ -179,18 +175,6 @@ var jsparser = function (script) {
 
    
                      this.setuptoken();                                             // 토큰을 가져와 임시 arr에 적재
-
-                         //if (this.token == 'function') this.keywords.function = true;
-                         //if (this.token == 'var') this.keywords.var = true;
-                     
-                         /*
-                         if ((a === '=') && (this.keywords.var)) {                      // 변수의 = 부터 ; 까지 모두 삭제
-                             console.log("var --------------------------------------");
-                             this.inserttoken();
-                             this.inittoken();
-                             this.skipstrings(";");
-                         }
-                         */
                      this.skiptoken();
 
                      break;
@@ -203,12 +187,8 @@ var jsparser = function (script) {
                  case a === '{':                                                   // 함수 or 객체에 해당 or let {ab, cd} = require('');
                      
                      var arr = this.lines.split("=");
-                     console.log("currline = %s", this.currline);
-                     console.log("lines = %s", this.lines);
-                     console.log("backupline = %s", this.backupline);
-                     console.log("nextline = %s", this.nextline);
-                     
-                     if ((this.recognizeallnotfunction()) && (arr.length > 1)){                                     // ok!  let {ab, cd} = require('');
+
+                     if ((this.recognizeallnotfunction()) && (arr.length > 1)){    // ok!  let {ab, cd} = require('');
                           var identreq = rangestr(arr[0], '{', '}');
                           var reqitems = identreq.split(',');
                           for(var i=0;i < reqitems.length; i++){
@@ -256,15 +236,16 @@ var jsparser = function (script) {
                      
                      this.skiptoken();
                      break;
-                 case a === '/':                                                  
-                     if ((this.nextchar !== '/') || (this.nextchar !== '*')) {    // not comment
-                         this.addone();
-                         break;
-                     } else {                                                     // comment
-                         this.insertcomment();
+                 case a === '/':
+                     if ((this.nextchar === '/') || (this.nextchar === '*')){
+                         this.insertcomment(this.nextchar);
                          this.skiptoken();
                          break;
+                     } else {
+                         this.addone();
+                         break;
                      }
+
                  case a === '}' || a === ']' || a === ')':
                      this.skiptoken();
                      break;
@@ -282,28 +263,47 @@ var jsparser = function (script) {
                      break;
              };
 
-             if ( this.linenumber === 0 ) {
-                if (isNewLine(code)) {
+             if (isNewLine(code)) {
                     this.backupline = '';
-                    this.nextline = '';
-                } else {
-                    this.backupline = a;
-                    this.nextline = this.getnextline();
-                    this.currline = a + this.getcurrline();
-                    //console.log("this.currline===>:", this.currline);
-                }
-                this.linenumber++;
+                    this.linenumber === 1 ? this.nextline = this.getcurrline() : this.nextline = this.getnextline();
+                    this.currline = this.getcurrline();
              } else {
-                if (isNewLine(code)) {
-                    this.backupline = '';
-                } else {
-                    this.backupline = this.backupline + a;  // line 별로 paring 전에 backup 한다.
-                }
+                    this.backupline = this.backupline + a;  
              }
 
              return true;
          };
 }
+
+
+/* 기본적으로 Text 로 처리한다. */
+/* require('aaa.js'); 의 경우 require 토큰 처리시 따로 처리한다. */
+/* Text 가 Html 인경우 연속에서 ' 포함된다. */
+jsparser.prototype.insertstring = function(char){
+    var idx;
+    var str = '';
+    var matchtag = this.getmatchtag();
+    if (matchtag !== undefined){
+        idx = this.lines.indexOf(matchtag + '>') + (matchtag + '>').length;
+        str = this.lines.substr(0,idx);
+    } else {
+       idx = this.lines.indexOf(char);
+       str = this.lines.substr(0,idx);
+    }
+    this.tokenarray.push('text:' + str);
+    this.lines = this.lines.substring(idx+1);
+}
+
+jsparser.prototype.getmatchtag = function(){
+    var matchtag = '';
+    for(var i=0; i < keywords.length; i++) {
+       var tag = '<' + keywords[i];
+       if (this.currline.indexOf(tag) !== -1){     // this.currline 에 주의 '<a href='http:www.fckeditor.net/'>FCKeditor</a>'
+          return keywords[i];
+       }
+    }
+}
+
 
 // 객체의 {} 부분을 파싱한다.
 // 1. 한글자식 이동하며 token화 하는 방법
@@ -651,6 +651,7 @@ jsparser.prototype.inserttoken = function() {
         /* ----------------------------------------------------- */
         } else if (this.recognizerequire()){
                    this.tokenarray.unshift('tp_require');
+                   
         } else {
                    this.tokenarray.unshift('tp_non');
                    //console.log("Type is not supported.");
@@ -665,29 +666,34 @@ jsparser.prototype.inserttoken = function() {
         } else {
             console.log("alert, console 등은 넣지 않습니다.");
         }
+        
         //console.log("(%d) =====> [%s]", this.linenumber, this.tokenarray.toString());
     } else {
         //console.log("Token Array 에 저장된 데이터가 없습니다. , so not inserted.");
     }
 }
 
-jsparser.prototype.insertcomment = function () {
-
-    if (this.nextchar == '/') {
+jsparser.prototype.insertcomment = function (char) {
+    
+    if (char === '/') {
         var idx = this.lines.indexOf('\n') + 1;
-        if (idx == -1) idx = this.lines.indexOf(10) + 1;
-    } else if (this.nextchar == '*') {
+        if (idx === -1) idx = this.lines.indexOf(10) + 1;
+    } else if (char === '*') {
         var idx = this.lines.indexOf('*/') + 2;
     }
+
     var arr = [];
-    arr.push(this.lines.substr(0, idx));
+    var comment = this.lines.substr(0, idx);
+    var count = charcount(comment, '\n');
+    //count !== -1 ? this.linenumber = this.linenumber + count : this.linenumber = this.linenumber;
     
-    
+    if (char === '/') comment = comment.c_replaceAll('\n', '');
+
+    arr.push(comment);
     arr.unshift('tp_comment');
-    arr.unshift(this.linenumber);  // * 인경우 라인수를 증가시겨 줘야함.
+    arr.unshift(this.linenumber);  
     this.tokens.push(arr);
     this.lines = this.lines.substring(idx);
-    
 }
 
 jsparser.prototype.setupjquery = function () {
@@ -1028,7 +1034,7 @@ jsparser.prototype.parserjs = function() {  // parserunit
 jsparser.prototype.tostringtokens = function () {
         var n = [];
         var result = '';
-        console.log("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+
 	for ( var i = 0; i < this.tokens.length; i++ ){
            n = this.tokens[i];
            
@@ -1038,7 +1044,7 @@ jsparser.prototype.tostringtokens = function () {
                result = result + n.toString() + '| \n';
            }
 	};
-	console.log("result:\n%s", result);
+	console.log("result: [%d] \n [%s]", this.tokens.length, result);
 	return result;
         
 }

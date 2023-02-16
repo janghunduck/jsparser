@@ -896,38 +896,38 @@ sss =
     "                 oFCKeditor.Config['EnterMode'] = 'br' ; \n" +
     "                 oFCKeditor.Config['ShiftEnterMode'] = 'br' ; \n" +
   "                 alert(oFCKeditor.Config['EnterMode']); \n" +
-//  "                 oFCKeditor.Value	= '<a href='http:www.fckeditor.net/'>FCKeditor<\/a>' ; \n" +
+  "                 oFCKeditor.Value	= '<a href='http:www.fckeditor.net/'>FCKeditor</a>' ; \n" +
 // "  \n" +
-// "                 oFCKeditor.Create() ; \n" +
+ "                 oFCKeditor.Create() ; \n" +
 // "  \n" +
  " 	   </script> \n" +
  " 	   <br   \> \n" +
  " 	 <!-- input type='submit' value='Submit'  --> " +
 " 	</form> \n" +
 " </body> \n" +
-" </html> \n" ;
+" </html> \n" +
+//  "  \n" +
+//  " <!-- ---------------------------------------- --> \n" +
+//  " <!--           For Keditor Interface          --> \n" +
+//  " <!-- ---------------------------------------- --> \n" +
+//  "  \n" +
+ "   <script type='text/javascript'>   \n" +
 // "  \n" +
-// " <!-- ---------------------------------------- --> \n" +
-// " <!--           For Keditor Interface          --> \n" +
-// " <!-- ---------------------------------------- --> \n" +
-// "  \n" +
-// " <script type='text/javascript'> \n" +
-// "  \n" +
-// "         // Not Usage \n" +
-// "         function testa(){ \n" +
-// "           alert('testa sucss!!' ); \n" +
-// "           //alert(oFCKeditor.Value); \n" +
-// "           //alert(document.all.FCKeditor1.value); \n" +
-// "  \n" +
-// "           var oFCKInstance = FCKeditorAPI.GetInstance( 'FCKeditor1' ); \n" +
-// "           oFCKInstance.Config['EnterMode'] = 'br' ; \n" +
-// "           alert(oFCKInstance.GetHTML()); \n" +
-// "  \n" +
-// "         } \n" +
+ "         // Not Usage \n" +
+ "         function testa(){ \n" +
+ "           alert('testa sucss!!' ); \n" +
+ "           alert(oFCKeditor.Value); \n" +
+ "           alert(document.all.FCKeditor1.value); \n" +
+ "  \n" +
+ "           var oFCKInstance = FCKeditorAPI.GetInstance( 'FCKeditor1' ); \n" +
+ "           oFCKInstance.Config['EnterMode'] = 'br' ; \n" +
+ "           alert(oFCKInstance.GetHTML()); \n" +
+ "  \n" +
+ "         } \n" +
 // 
-// " </script> \n" +
+ "</script>" +
 // "  \n" +
-// "  \n" ;
+ "" ;
 
 
 

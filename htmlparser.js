@@ -19,8 +19,8 @@ var Parhtml = function (html, targetfile) {
          this.depth = 0;
          this.tagdata = '';
 
-         this.keywords = makearray("html,head,title,body,table,tr,td,div,meta,link,script,p,span,img,input,select,option,b,button,a,form,hr,br");
-         this.metalinktags = makearray("meta,link,input,img,hr,br");           // <  /> 시작과 함께 닽힘, <../> 와 <..> 둘다 쓸수 있고 </..> 형식이 없다.
+         //this.keywords = makearray("html,head,title,body,table,tr,td,div,meta,link,script,p,span,img,input,select,option,b,button,a,form,hr,br");
+         //this.metalinktags = makearray("meta,link,input,img,hr,br");           // <  /> 시작과 함께 닽힘, <../> 와 <..> 둘다 쓸수 있고 </..> 형식이 없다.
 
          var isDepthEnd = false;                               // depth 가 0 이면 True 아니면 false
          var isMetalink = false;                               // <meta .../> 와 같은 유형 처리에서 isDepthEnd =0 이고 </ 형식이 아닌 경우 true
@@ -74,12 +74,12 @@ var Parhtml = function (html, targetfile) {
                  case a === ' ':   // 공백처리
                      //console.log("---------------->[%s]", this.nexttoken);
                      if (isBracketInOut) {                                       // < > 안에 있다.
-                         if (this.checkKeywords(this.nexttoken)){                /* keywords 로서 존재하는지 체크  checkStringInArray(this.keywords, this.nexttoken) 로 변경요함  */
+                         if (checkKeywords(this.nexttoken)){                /* keywords 로서 존재하는지 체크  checkStringInArray(this.keywords, this.nexttoken) 로 변경요함  */
                              var index = findChar(this.lines, '>');              // tagdata 를 얻는다.
                              if (index !== -1) {
                                 this.tagdata = this.lines.substring(0, index);
                                 this.lines = this.lines.substring(index);
-                                if (this.checkMetalinktags(this.nexttoken)) { this.depth--; }   // <link  ..../> 형태 처리
+                                if (checkMetalinktags(this.nexttoken)) { this.depth--; }   // <link  ..../> 형태 처리
                              } 
                          } else {
                              try { throw Error(' Keywords 에 존재하지 않습니다. '); } catch(e) { this.skiptoken(); };
@@ -106,7 +106,6 @@ var Parhtml = function (html, targetfile) {
                      if ((this.nexttoken !== '') && (this.depth !== 0)) {
                          this.updatetoken(this.tokenobj.length-1, 'data');  // data update */
                      }
-                     
                      
                      this.skiptoken();
                      if((isDepthEnd) && (this.lines.charAt(0) !== '/')) {
@@ -191,28 +190,8 @@ var Parhtml = function (html, targetfile) {
 
 }
 
-Parhtml.prototype.checkKeywords = function (str) {
 
-         for(var i=0; i < this.keywords.length; i++) {
-             //console.log("%s  === %s", this.keywords[i], str);
-             if (this.keywords[i] === str) {
-                return true;
-             }
-         }
-         return false;
 
-}
-
-Parhtml.prototype.checkMetalinktags = function (str) {
-
-         for(var i=0; i < this.metalinktags.length; i++) {
-             //console.log("%s  === %s", this.metalinktags[i], str);
-             if (this.metalinktags[i] === str) {
-                return true;
-             }
-         }
-         return false;
-}
 
 
 

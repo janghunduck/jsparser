@@ -31,7 +31,8 @@ console.log("=>[script: ]", PP.getInlineScript());
 var scripts = PP.getInlineScript();
 
 for(var i=0; i < scripts.length; i++){
-   console.log("[%s]", scripts[i]);
+   console.log("[flowjs.html] script");
+   console.log("[%d][%s]", i,scripts[i]);
    var pj = new jsparser(String(scripts[i]));
    pj.parserjs();
    pj.tostringtokens();
