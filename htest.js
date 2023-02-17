@@ -4489,7 +4489,6 @@ sss =
 "     <script src='js/spniGallery.js'></script> \n" +
 "     <script src='js/feedback.js'></script> \n" +
 "     <!-- beautify ignore:start --> \n" +
-//"     <script>document.addEventListener('keyup',function(){var i=0;var c=[2,2,0,0,3,1,3,1,5,4].map(function(j){return ['ArrowDown','ArrowRight','ArrowUp','ArrowLeft',String.fromCharCode(97),String.fromCharCode(98)][j]});return function(e){if(e.key === c[i]){i++;if(i>=c.length){EPILOGUES_UNLOCKED=true;DEBUG=true;updateDebugState(true);i=0;}} else i=0}}(),false);</script> \n" +
 "     <!-- beautify ignore:end --> \n" +
 " </body> \n" +
 "  \n" +

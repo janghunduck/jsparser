@@ -154,10 +154,11 @@ function makeobject(str){
 }
 
 function makearray(str){
-	 var arr = [], items = String(str).split(",");
-	 for ( var i = 0; i < items.length; i++ )
-		arr[i] = items[i];
-	 return arr;
+    var arr = [], items = String(str).split(",");
+    for ( var i = 0; i < items.length; i++ ){
+	arr[i] = items[i];
+    }
+    return arr;
 }
 
 
@@ -372,9 +373,92 @@ std::string str_replace(
    
    
 
+function checkfirsttagvalidation(strings){
+    var str = trim_l(strings);
+    
+    if ((str.charAt(0) !== '<') || ((str.charAt(0) !== '\n') && (str.charAt(0) !== '<'))){
+       return false;
+    }
+    return true;
+}
+
+/*
+strictBoolean = true 이면  <br /> 를 <br> 로 변경한다.
+return : 새로운 html 를 리턴한다.
+*/
+function simpleValidateHtmlStr(htmlStr, strictBoolean) {
+  if (typeof htmlStr !== "string")
+    return false;
+
+  var validateHtmlTag = new RegExp("<[a-z]+(\s+|\"[^\"]*\"\s?|'[^']*'\s?|[^'\">])*>", "igm"),
+    sdom = document.createElement('div'),
+    noSrcNoAmpHtmlStr = htmlStr
+      .replace(/ src=/, " svhs___src=") // disarm src attributes
+      .replace(/&amp;/igm, "#svhs#amp##"), // 'save' encoded ampersands
+    noSrcNoAmpIgnoreScriptContentHtmlStr = noSrcNoAmpHtmlStr
+      .replace(/\n\r?/igm, "#svhs#nl##") // temporarily remove line breaks
+      .replace(/(<script[^>]*>)(.*?)(<\/script>)/igm, "$1$3") // ignore script contents
+      .replace(/#svhs#nl##/igm, "\n\r"),  // re-add line breaks
+    htmlTags = noSrcNoAmpIgnoreScriptContentHtmlStr.match(/<[a-z]+[^>]*>/igm), // get all start-tags
+    htmlTagsCount = htmlTags ? htmlTags.length : 0,
+    tagsAreValid, resHtmlStr;
 
 
+  if(!strictBoolean){
+    // ignore <br/> conversions
+    noSrcNoAmpHtmlStr = noSrcNoAmpHtmlStr.replace(/<br\s*\/>/, "<br>")
+  }
 
+  if (htmlTagsCount) {
+    tagsAreValid = htmlTags.reduce(function(isValid, tagStr) {
+      return isValid && tagStr.match(validateHtmlTag);
+    }, true);
+
+    if (!tagsAreValid) {
+      return false;
+    }
+  }
+
+
+  try {
+    sdom.innerHTML = noSrcNoAmpHtmlStr;
+  } catch (err) {
+    return false;
+  }
+
+  // compare rendered tag-count with expected tag-count
+  if (sdom.querySelectorAll("*").length !== htmlTagsCount) {
+    return false;
+  }
+
+  resHtmlStr = sdom.innerHTML.replace(/&amp;/igm, "&"); // undo '&' encoding
+
+  if(!strictBoolean){
+    // ignore empty attribute normalizations
+    resHtmlStr = resHtmlStr.replace(/=""/, "")
+  }
+
+  // compare html strings while ignoring case, quote-changes, trailing spaces
+  var
+    simpleIn = noSrcNoAmpHtmlStr.replace(/["']/igm, "").replace(/\s+/igm, " ").toLowerCase().trim(),
+    simpleOut = resHtmlStr.replace(/["']/igm, "").replace(/\s+/igm, " ").toLowerCase().trim();
+  if (simpleIn === simpleOut)
+    return true;
+
+  return resHtmlStr.replace(/ svhs___src=/igm, " src=").replace(/#svhs#amp##/, "&amp;");
+}
+
+
+function validHTML(html) {
+  var openingTags, closingTags;
+
+  html        = html.replace(/<[^>]*\/\s?>/g, '');      // Remove all self closing tags
+  html        = html.replace(/<(br|hr|img).*?>/g, '');  // Remove all <br>, <hr>, and <img> tags
+  openingTags = html.match(/<[^\/].*?>/g) || [];        // Get remaining opening tags
+  closingTags = html.match(/<\/.+?>/g) || [];           // Get remaining closing tags
+
+  return openingTags.length === closingTags.length ? true : false;
+}
 
 
 

@@ -1,0 +1,32 @@
+<script>
+let acorn = require('acorn');
+
+let aa = acorn.parse('var aa = function (x,y){ }', {ecmaVersion: 2020});
+
+console.log(Object.entries(aa));
+console.log(Object.values(aa));
+</script>
+
+
+
+<script>
+ var ab = '';
+ let ab = '';
+ const ab = '';
+ var ast = [];
+ let ast = [];
+ const ast = [];
+</script>
+
+
+<script>
+let babelParser = require("@babel/parser");
+
+ let ast = [];
+
+//ast = babelParser.parse(code, mergeObjectStructures(defaultAstConfig, config));
+ast = babelParser.parse("function ab() { }", {});
+
+console.log("=>",ast.toString());
+
+</script>

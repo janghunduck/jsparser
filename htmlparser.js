@@ -1,11 +1,15 @@
 //(function(){
 
-//html 문서가 정확해야 하지만, 그 전에 정확한 문서인지 체크가 되어야 한다.
+//html 문서가 정확해야 하지만, 그 전에 정확한 문서인지 체크가 되어야 한다. validation check
 
 var Parhtml = function (html, targetfile) {
 
          //html =      " <p>Make sure to check out our list of <a href='#' onclick='showHelpModal()'>Frequently-Asked Questions</a>!</p> \n";
          //html =       " <p>The latest version of the game can be played at <br \><a href='https:spnati.net/'><b>spnati.net</b></a></p> \n";
+
+         if (!validHTML(html)) { alert('Invalid HTML, HTML 문서 형식이 아닙니다. ') }
+         
+         
          this.orglines       = '';    // source
          this.lines          = html;
          this.ftype          = [];   // file=js, html
@@ -142,6 +146,7 @@ var Parhtml = function (html, targetfile) {
                          this.lines = this.lines.substring(index + '</script>'.length);
                          this.depth--;
                      } else {
+                         //this.lines = this.lines.replace(/<br\s*\/>/, "<br>")   // <br /> => <br>
                          if (this.nexttoken === 'br') { this.depth--; }  // ? 종결자가 없는 tag 의 경우
                          if (this.nexttoken === 'hr') { this.depth--; }  // ?
                      }
@@ -199,7 +204,6 @@ var Parhtml = function (html, targetfile) {
 
 }
 
-
 // 정확한지 테스트 요함.
 Parhtml.prototype.isCommentordoctype = function(char){
      var c = this.lines.charAt(2);
@@ -235,8 +239,6 @@ Parhtml.prototype.updatetagdata = function (index, key) {
          }
 
          this.tagdata = '';
-         
-         
 }
 
 
@@ -250,7 +252,6 @@ Parhtml.prototype.inserttoken = function () {
          this.tokenobj.push(node);
 
          return node;
-
 }
 
 
@@ -369,7 +370,6 @@ Parhtml.prototype.tostringtagdata = function () {
         }
 }
 
-
 function countString(s, checkstr){
     var pos = 0;
     var i = 0;
@@ -430,8 +430,11 @@ Parhtml.prototype.getTracefilelst = function () {
               if (idx !== -1){
                   var jsfile = node.tagdata.substr(idx, node.tagdata.length - idx);
                   jsfile = rangestr (jsfile, "'", "'");                                // ../../aaa.js, ./ab.js
-
-                  arr.push(getRealPath(currdir, jsfile));
+                  if (jsfile.indexOf('http') !== -1){
+                      arr.push(jsfile);
+                  } else {
+                      arr.push(getRealPath(currdir, jsfile));
+                  }
               }
            }
 
@@ -439,6 +442,8 @@ Parhtml.prototype.getTracefilelst = function () {
     return arr;
 }
 
+// html 의 <script> 부분 소스 text , jsparser에 넣을 것
+// <script> 가 2개가 오는 경우는 result 를 배열에 담는다.
 Parhtml.prototype.getInlineScript = function () {
     var result = [];
     for ( var i = 0; i < this.tokenobj.length; i++ ){
@@ -454,27 +459,6 @@ Parhtml.prototype.getInlineScript = function () {
     }
     return result;
 }
-
-
-// html 의 <script> 부분 소스 text , jsparser에 넣을 것
-// <script> 가 2개가 오는 경우는 result 를 배열에 담는다.
-Parhtml.prototype.getInlineScript_aaaaaaaa = function () {
-    var result = '';
-    for ( var i = 0; i < this.tokenobj.length; i++ ){
-           var node = this.tokenobj[i];
-           if (node.tagname === 'script'){
-              var idx = node.tagdata.indexOf('src');
-              if (idx === -1){
-                  //console.log("data = [%s]", node.data);  // jsparser로 들어감
-                  result = result + node.data
-              }
-           }
-
-    }
-    return result;
-}
-
-
 
 
 
@@ -511,9 +495,6 @@ console.log("=>[script: ]", PP.getInlineScript());
 //console.log("[%s]", c);
 //console.log("===>", eval("getFileAbsolutePath()"));
 //console.log("===>%d", countRepeatStr('../../aaa.js', '..'));
-
-
-
 
 
 //})();

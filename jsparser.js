@@ -17,17 +17,16 @@ var jsparser2 = this.jsparser2 = function(script, handler){
     }
 }
 
-
-
 });
 
 
 
 //(function(){
 
-var jsparser = function (script) {
+var jsparser = function (script, isShowComment) {
 
          this.lines          = script;
+         this.showComment = isShowComment;
          this.backupline     = '';
          this.nextline       = '';
          this.currline       = '';
@@ -47,24 +46,21 @@ var jsparser = function (script) {
 
          this.tokenobj = []; //[ {tagname: depth: data:},{} ... {n} ] 배열에 그냥 object를 나열한다.
          this.depth = 0;     // 함수 안의 함수
+         
 
          this.keywords = makearray("var,let,const,function,new,prototype");
-         this.skipkeywords = makearray("alert,console");
+         this.skipkeywords = makearray("console,alert");
 
          //this.lines = "var ab    =   function  () {  \n  alert('ab')  {         {}        } } ";
-         
          //this.lines = "   var xy = '';  \n function ab(){           x       }  ";
          //this.lines = " function ab   () {   \n } ";
-         
-         
          //this.lines = " var x=  8 ; var y  ; z = 'sex' ";
          //this.lines = " var x=  8";
          //this.lines = "var obj =new ab()  ;";
          //this.lines = "var emptyobject = { ";
          //this.lines = " function ab   () {    ";    // error 처리
-         
          //this.lines = "var o ={}";
-         //this.lines = "var arr =[]";
+         //this.lines = "var arr = [       ]";
          //this.lines = "var arr =new array()";
          //this.lines = "obj.ab(x);";
          //this.lines = "ab.prototype.call = function(){  \n  alert('me!') } ";
@@ -85,7 +81,7 @@ var jsparser = function (script) {
          //this.lines = "exports.add = function ab(){} "
          //this.lines = "const {add, sub} = require('./mode.js');"
          //this.lines = " var o = {\n name: 'linda', \n sex: 'women', size, \n me: intro(){}, \n getOlder(){}, \n sayhello : function() { \n alert('hi');  }}" ;
-        // this.lines = "let ab = require('js2flowchart'); ";
+         //this.lines = "let ab = require('js2flowchart'); ";
          //this.lines = "$('.frame_id, #frame_class').show()";
          //this.lines = "$(window).load( game.run() )";
          //this.lines = "$(document).ready( function (){}) ";
@@ -234,7 +230,12 @@ var jsparser = function (script) {
                      break;
                  case a === '/':
                      if ((this.nextchar === '/') || (this.nextchar === '*')){
-                         this.insertcomment(this.nextchar);
+                         if (this.showComment) {
+                             this.insertcomment(this.nextchar);
+                         } else {
+                             var idx = this.lines.indexOf('\n');
+                             this.lines = this.lines.substring(idx-1);
+                         }
                          this.skiptoken();
                          break;
                      } else {
@@ -408,10 +409,15 @@ jsparser.prototype.findkeyfromarr = function(keyword) {
 }
 
 jsparser.prototype.findArrformSkipkeywords = function(){
-   for(var i=0; i< this.skipkeywords.length; i++){
-       var key = this.skipkeywords[i];
-       return this.findkeyfromarr(key);
-   }
+
+    for(var i=0; i< this.skipkeywords.length+1; i++){
+        var key = this.skipkeywords[i];
+        
+        if (this.findkeyfromarr(key) !== -1){
+            return this.findkeyfromarr(key);
+        }
+    }
+    return -1;
 }
 
 // 특정순서로 함수 인지 오브젝트인지 결정할 수 있다. (아직 미사용)
@@ -681,7 +687,7 @@ jsparser.prototype.inserttoken = function() {
         }
 
 
-        /* Last Process */
+        /* Last Process 이건 비용이 많이든다.? */
         if ((this.findArrformSkipkeywords() === -1)){
             this.tokenarray.unshift(this.linenumber);              
             this.tokens.push(this.tokenarray);
