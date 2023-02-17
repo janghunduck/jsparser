@@ -4,6 +4,8 @@
 
 var Parhtml = function (html, targetfile) {
 
+         //html =      " <p>Make sure to check out our list of <a href='#' onclick='showHelpModal()'>Frequently-Asked Questions</a>!</p> \n";
+         //html =       " <p>The latest version of the game can be played at <br \><a href='https:spnati.net/'><b>spnati.net</b></a></p> \n";
          this.orglines       = '';    // source
          this.lines          = html;
          this.ftype          = [];   // file=js, html
@@ -38,6 +40,8 @@ var Parhtml = function (html, targetfile) {
              var a = this.lines.charAt(0);
              this.prevchar = a;
              this.nextchar = this.lines.charAt(1);
+             var code = this.lines.charCodeAt(0);
+             
              //console.log("charat = [%s]",a);
 
              switch (true) {
@@ -55,9 +59,11 @@ var Parhtml = function (html, targetfile) {
                       if (this.nextchar === '-') {
                           var idx = this.lines.indexOf('-->') + 1;
                           this.lines = this.lines.substring(idx + '-->'.length);
-                      } else {
+                      } else if(this.nextchar === 'D') {
                           var idx = this.lines.indexOf('>') + 1;
                           this.lines = this.lines.substring(idx);
+                      } else {
+                          this.addone();
                       }
 
                      break;
@@ -72,13 +78,14 @@ var Parhtml = function (html, targetfile) {
                      this.skiptoken();
                      break;
                  case a === ' ':   // 공백처리
-                     //console.log("---------------->[%s]", this.nexttoken);
-                     if (isBracketInOut) {                                       // < > 안에 있다.
+                     if (isBracketInOut) {                            // < > 안에 있다.
+                         
                          if (checkKeywords(this.nexttoken)){                /* keywords 로서 존재하는지 체크  checkStringInArray(this.keywords, this.nexttoken) 로 변경요함  */
                              var index = findChar(this.lines, '>');              // tagdata 를 얻는다.
                              if (index !== -1) {
                                 this.tagdata = this.lines.substring(0, index);
                                 this.lines = this.lines.substring(index);
+                                
                                 if (checkMetalinktags(this.nexttoken)) { this.depth--; }   // <link  ..../> 형태 처리
                              } 
                          } else {
@@ -96,9 +103,9 @@ var Parhtml = function (html, targetfile) {
                      this.addone();
                      break;
                  case a === '<':
-                     
+
                      this.nexttoken = this.nexttoken.c_trim(this.nexttoken);
-                     if (this.nextchar === '!') {                                 // <!-- --> comment , <!DOCTYPE HTML ....>  skip, 처리는 ! 에서 삭제
+                     if (this.isCommentordoctype(a)) {                                 // <!-- --> comment , <!DOCTYPE HTML ....>  skip, 처리는 ! 에서 삭제
                           this.skiptoken();
                           break;
                      }
@@ -115,13 +122,13 @@ var Parhtml = function (html, targetfile) {
                      break;
                  case a === '>':
 
-                     //console.log("[%s]", this.nexttoken);
+                     //console.log(">>>>>>>>>>>>>>[%s]", this.nexttoken);
                      //if (this.nexttoken.c_trim(this.nexttoken) === ''){  this.skiptoken(); break; }
                      if ((isDepthEnd) && (!isMetalink)) { this.skiptoken(); break; };                 // depth 가 마지막이면 나감 depth === 0 경우
                      this.nexttoken = this.nexttoken.c_trim(this.nexttoken);
                      this.token = this.nexttoken;
 
-                     this.inserttoken();                                                              // token 생성, token 마다 계속 생성된다.
+                     if (this.nexttoken !== '') this.inserttoken();                                                              // token 생성, token 마다 계속 생성된다.
                      if (this.tagdata !== '') {
                          this.updatetagdata(this.tokenobj.length-1, 'tagdata');  // tagdata update
                          
@@ -135,22 +142,20 @@ var Parhtml = function (html, targetfile) {
                          this.lines = this.lines.substring(index + '</script>'.length);
                          this.depth--;
                      } else {
-                        //console.log("this.nexttoken [%s]", this.nexttoken);
-                        //var ii = this.lines.indexOf('<');
-                        //var d = this.lines.substring(1, ii);
-                        //console.log("data[%s]", d);
-                        //this.updatetokendata(this.tokenobj.length-1, 'data', d);
-                        //this.lines = this.lines.substring(ii);
+                         if (this.nexttoken === 'br') { this.depth--; }  // ? 종결자가 없는 tag 의 경우
+                         if (this.nexttoken === 'hr') { this.depth--; }  // ?
                      }
+
                      
                      this.skiptoken();
                      this.depth++
                      isMetalink = false;
                      isBracketInOut = false;
+                     
                      //console.log("nexttoken : [%s] [%s]",  this.nexttoken, this.lines);
                      break;
                  case a === '/':        // '/' 는 depth 를 판단하는 기준
-                     //console.log("----[%s]", this.nexttoken);
+                     //console.log("/ [%s]", this.nexttoken);
                      this.skiptoken();
                      this.depth !== 0 ? isDepthEnd = true : isDepthEnd = false;
                      this.depth--;
@@ -177,10 +182,14 @@ var Parhtml = function (html, targetfile) {
                      }
 
                      break;
-
+                 case code === 8220 || code === 8221 || code === 167:     //“, ”, §
+                     //console.log("특수문자 , [%s][code = %d]", a, code);
+                     this.skiptoken();
+                     break;
                  default:
                      //throw Error("Error : swich default, char is not definition, [%s]", a);
-                     window.alert("[Fatal Error] : swich default, char is not definition, [" + a + "]" );
+                     //window.alert("[Fatal Error] : swich default, char is not definition, [" + a + "]" );
+                     console.log("[Fatal Error] : swich default, char is not definition, [%s][code = %d]", a, code);
                      this.skiptoken();
                      break;
 
@@ -191,8 +200,12 @@ var Parhtml = function (html, targetfile) {
 }
 
 
-
-
+// 정확한지 테스트 요함.
+Parhtml.prototype.isCommentordoctype = function(char){
+     var c = this.lines.charAt(2);
+     //console.log("char ==============>>>>>>%s, %s , %s ", char, this.nextchar, c);
+     return (((this.nextchar === '!') && (c === '-')) || ((this.nextchar === '!') && (c === 'D')));
+}
 
 
 Parhtml.prototype.updatetoken = function (index, key) {
@@ -426,6 +439,23 @@ Parhtml.prototype.getTracefilelst = function () {
     return arr;
 }
 
+Parhtml.prototype.getInlineScript = function () {
+    var result = [];
+    for ( var i = 0; i < this.tokenobj.length; i++ ){
+           var node = this.tokenobj[i];
+           if (node.tagname === 'script'){
+              var idx = node.tagdata.indexOf('src');
+              if (idx === -1){
+
+                  result.push(node.data);
+                  //console.log("data = [%d][%s]", i, node.data);
+              }
+           }
+    }
+    return result;
+}
+
+
 // html 의 <script> 부분 소스 text , jsparser에 넣을 것
 // <script> 가 2개가 오는 경우는 result 를 배열에 담는다.
 Parhtml.prototype.getInlineScript_aaaaaaaa = function () {
@@ -444,19 +474,6 @@ Parhtml.prototype.getInlineScript_aaaaaaaa = function () {
     return result;
 }
 
-Parhtml.prototype.getInlineScript = function () {
-    var result = [];
-    for ( var i = 0; i < this.tokenobj.length; i++ ){
-           var node = this.tokenobj[i];
-           if (node.tagname === 'script'){
-              var idx = node.tagdata.indexOf('src');
-              if (idx === -1){
-                  result.push(node.data);
-              }
-           }
-    }
-    return result;
-}
 
 
 

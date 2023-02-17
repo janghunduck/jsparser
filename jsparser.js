@@ -68,7 +68,7 @@ var jsparser = function (script) {
          //this.lines = "var arr =new array()";
          //this.lines = "obj.ab(x);";
          //this.lines = "ab.prototype.call = function(){  \n  alert('me!') } ";
-         //this.lines = "//before comment \n function ab() { \n alert('me') } ";
+         //this.lines = "//before comment\n function ab() { \n alert('me') } ";
          //this.lines = "function ab() { \n alert('me') } //after comment   ";
          //this.lines = " /*  before comment \n  It's: comment !  */  \n var x;   ";
          //this.lines = " if (true) {  \n let name = 'Luke'; \n } \n ";     // 전역으로 선언된 Block Scope
@@ -158,10 +158,6 @@ var jsparser = function (script) {
                      this.inserttoken();                                            // tokens 에 넣는다.
                      this.inittoken();                                              // 모두 초기화
                      this.skiptoken();
-                     
-                     /* Here getnextline(), getcurrline() */
-                     
-                     this.linenumber++;
                      break;
 
                  case a === ' ' || a === '=' || a === '(' || a === '.':             // code = 32
@@ -267,6 +263,7 @@ var jsparser = function (script) {
                     this.backupline = '';
                     this.linenumber === 1 ? this.nextline = this.getcurrline() : this.nextline = this.getnextline();
                     this.currline = this.getcurrline();
+                    this.linenumber++;
              } else {
                     this.backupline = this.backupline + a;  
              }
@@ -370,6 +367,31 @@ jsparser.prototype.getbracepart = function(o, c){
     }
 
     return closestr + nextstr.substr(0, foundPos+1);       // } b} }
+}
+
+jsparser.prototype.insertcomment = function (char) {
+
+    if (char === '/') {
+        var idx = this.lines.indexOf('\n');
+        if (idx === -1) idx = this.lines.indexOf(10) + 1;   // ?
+    } else if (char === '*') {
+        var idx = this.lines.indexOf('*/') + 2;
+    }
+
+    var arr = [];
+    var comment = this.lines.substr(0, idx);
+
+    arr.push(comment);
+    arr.unshift('tp_comment');
+    arr.unshift(this.linenumber);
+    this.tokens.push(arr);
+    this.lines = this.lines.substring(idx-1);
+    
+    /* lineNumber 재설정 * 주석은 여러줄일 수 있으니 \n 를 count 해서 더해준다. */
+    if (char === '*') {
+        var count = charcount(comment, '\n');
+        count !== -1 ? this.linenumber = this.linenumber + count : this.linenumber = this.linenumber;
+    }
 }
 
 
@@ -673,28 +695,7 @@ jsparser.prototype.inserttoken = function() {
     }
 }
 
-jsparser.prototype.insertcomment = function (char) {
-    
-    if (char === '/') {
-        var idx = this.lines.indexOf('\n') + 1;
-        if (idx === -1) idx = this.lines.indexOf(10) + 1;
-    } else if (char === '*') {
-        var idx = this.lines.indexOf('*/') + 2;
-    }
 
-    var arr = [];
-    var comment = this.lines.substr(0, idx);
-    var count = charcount(comment, '\n');
-    //count !== -1 ? this.linenumber = this.linenumber + count : this.linenumber = this.linenumber;
-    
-    if (char === '/') comment = comment.c_replaceAll('\n', '');
-
-    arr.push(comment);
-    arr.unshift('tp_comment');
-    arr.unshift(this.linenumber);  
-    this.tokens.push(arr);
-    this.lines = this.lines.substring(idx);
-}
 
 jsparser.prototype.setupjquery = function () {
 
