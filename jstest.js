@@ -1,4 +1,4 @@
-sss =
+ssa =
 
 " <script> \n" +
  " let acorn = require('acorn'); \n" +
@@ -9,7 +9,7 @@ sss =
 " alert(Object.values(aa));\n" +
 " </script> \n" ;
 
-sss =
+ssa =
 "  \n" +
 " <script> \n" +
 " let babelParser = require('@babel/parser'); \n" +
@@ -23,7 +23,7 @@ sss =
 "  \n" +
 " </script> \n" ;
 
- sss =
+ ssa =
 " <script> \n" +
 "  var ab = '';           // general var   (gv) \n" +
 "  let ab = '';           // general let   (gl) \n" +

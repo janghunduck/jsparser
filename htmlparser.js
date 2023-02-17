@@ -1,14 +1,14 @@
-//(function(){
+/*
+filename : htmlparser.js
+author : yoobi
+project : chartflow
+company :
 
-//html 문서가 정확해야 하지만, 그 전에 정확한 문서인지 체크가 되어야 한다. validation check
+*/
 
 var Parhtml = function (html, targetfile) {
 
-         //html =      " <p>Make sure to check out our list of <a href='#' onclick='showHelpModal()'>Frequently-Asked Questions</a>!</p> \n";
-         //html =       " <p>The latest version of the game can be played at <br \><a href='https:spnati.net/'><b>spnati.net</b></a></p> \n";
-
-         if (!validHTML(html)) { alert('Invalid HTML, HTML 문서 형식이 아닙니다. ') }
-         
+         //if (!validHTML(html)) { alert('Invalid HTML, HTML 문서 형식이 아닙니다. ') }  // Html validation check
          
          this.orglines       = '';    // source
          this.lines          = html;
@@ -25,19 +25,9 @@ var Parhtml = function (html, targetfile) {
          this.depth = 0;
          this.tagdata = '';
 
-         //this.keywords = makearray("html,head,title,body,table,tr,td,div,meta,link,script,p,span,img,input,select,option,b,button,a,form,hr,br");
-         //this.metalinktags = makearray("meta,link,input,img,hr,br");           // <  /> 시작과 함께 닽힘, <../> 와 <..> 둘다 쓸수 있고 </..> 형식이 없다.
-
          var isDepthEnd = false;                               // depth 가 0 이면 True 아니면 false
          var isMetalink = false;                               // <meta .../> 와 같은 유형 처리에서 isDepthEnd =0 이고 </ 형식이 아닌 경우 true
          var isBracketInOut = false;                           // <> 안이면 true, <> 밖이면 false
-        /**
-         ex : <html><head></head><body>abcd</body></html>
-         token : function, procedure, 지시자들  = tagName ( html, head, body etc )
-                                                = var, fuction
-         nexttoken :
-
-        */
 
          this.getnexttoken = function () {
 
@@ -126,7 +116,6 @@ var Parhtml = function (html, targetfile) {
                      break;
                  case a === '>':
 
-                     //console.log(">>>>>>>>>>>>>>[%s]", this.nexttoken);
                      //if (this.nexttoken.c_trim(this.nexttoken) === ''){  this.skiptoken(); break; }
                      if ((isDepthEnd) && (!isMetalink)) { this.skiptoken(); break; };                 // depth 가 마지막이면 나감 depth === 0 경우
                      this.nexttoken = this.nexttoken.c_trim(this.nexttoken);
@@ -156,11 +145,9 @@ var Parhtml = function (html, targetfile) {
                      this.depth++
                      isMetalink = false;
                      isBracketInOut = false;
-                     
-                     //console.log("nexttoken : [%s] [%s]",  this.nexttoken, this.lines);
+
                      break;
                  case a === '/':        // '/' 는 depth 를 판단하는 기준
-                     //console.log("/ [%s]", this.nexttoken);
                      this.skiptoken();
                      this.depth !== 0 ? isDepthEnd = true : isDepthEnd = false;
                      this.depth--;
@@ -168,13 +155,10 @@ var Parhtml = function (html, targetfile) {
                      var idx = findChar(this.lines, '>');
                      this.lines = this.lines.substring(idx);  // </ ...> 를 지움
 
-                     //console.log("depth [/] %d", this.depth);
-                     //isMetaLink = false;
                      break;
                  case a === '(' || a === ')' || a === '[' || a === ']' || a === ';' || a === ',' || a === '.' || a === '^' || a === '*' || a === '=':
 
                  case (a >= 'A' && a <= 'Z') || (a >= 'a' && a <= 'z') || a === '_' || a === '@' || a === '-':  // 문자
-                     //console.log("%s    %d", a, this.depth);
                      if ((isDepthEnd) && (!isMetalink)) {
                         if (isBracketInOut) {
                           this.skiptoken();
@@ -187,10 +171,13 @@ var Parhtml = function (html, targetfile) {
                      }
 
                      break;
-                 case code === 8220 || code === 8221 || code === 167:     //“, ”, §
-                     //console.log("특수문자 , [%s][code = %d]", a, code);
-                     this.skiptoken();
-                     break;
+                 case code === 8220 || code === 8221 || code === 167 || code === 63 || code === 8217 || code === 37:     //“, ”, §, ? , ` , % 특수문자
+                        if (isBracketInOut) {
+                          this.skiptoken();
+                        } else {
+                          this.addone();
+                        }
+                        break;
                  default:
                      //throw Error("Error : swich default, char is not definition, [%s]", a);
                      //window.alert("[Fatal Error] : swich default, char is not definition, [" + a + "]" );
@@ -459,42 +446,3 @@ Parhtml.prototype.getInlineScript = function () {
     }
     return result;
 }
-
-
-
-
-
-//var PP = new Parhtml("<html xmlns='http://www.w3.org/1999/xhtml'><head><title>abcd -efg</title></head><body><table></table></body></html>");
-//var PP = new Parhtml("<html><head></head><body  topmargin='0'></body></html>");
-//var PP = new Parhtml("<html><head></head><body  topmargin='0'><table><tr></tr></table></body></html>");
-//var PP = new Parhtml("<html><head></head><body  topmargin='0'><table class='jang' id='xfaa'><tr id='dija'><td size='877'></td></tr></table></body></html>");
-//var PP = new Parhtml("<html><head><meta http-equiv='Content-Type' content='text/html; charset=utf-8'/></head><body><table></table></body></html>");
-//var PP = new Parhtml("<html><head><link href='../sample.css' rel='stylesheet' type='text/css' /></head><body></body></html>");
-//var PP = new Parhtml("<html><head><script type='text/javascript' src='../../fckconfig.js'>aaaaaaffff</script></head><body></body></html>");
-
-// <!DOCTYPE html><html></html> 처리 ==> 처음에 comment와 같이 지워버림
-
-//var PP = new Parhtml("");
-/*
-var PP = new Parhtml(sss);
-PP.parserunit();
-
-console.log("=>[tokens: ]", '\n' + PP.tostringtokens());
-console.log("=>[traces: ]", PP.getTracefilelst());
-console.log("=>[script: ]", PP.getInlineScript());
-*/
-
-
-/**
-*/
-//console.log(">", '\n' + PP.tostringtagdata());
-
-//console.log("sss=>[%s]",PP.deleteallcomment(sss));
-//var c = P.pickchar(P.lines, 0);
-
-//console.log("[%s]", c);
-//console.log("===>", eval("getFileAbsolutePath()"));
-//console.log("===>%d", countRepeatStr('../../aaa.js', '..'));
-
-
-//})();
