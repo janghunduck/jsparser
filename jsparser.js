@@ -143,12 +143,6 @@ var jsparser = function (script, isShowComment) {
                  case code === 59 || code === 0 || code === 10 || code === 13 || code === 0x2028 || code === 0x2029: // 0: eof, 59: ;
  
                      this.nexttoken = this.nexttoken.c_trim(this.nexttoken);
-                     
-//                      console.log("currline = %s", this.currline);
-//                      console.log("lines = %s", this.lines);
-//                      console.log("backupline = %s", this.backupline);
-//                      console.log("nextline = %s", this.nextline);
-                     
                      if (this.nexttoken != '') this.tokenarray.push(this.nexttoken);
 
                      this.inserttoken();                                            // tokens 에 넣는다.
@@ -597,7 +591,10 @@ jsparser.prototype.inserttoken = function() {
                 && (this.findkeyfromarr('array') == -1)         // variable object : vo
                 ) {
             this.tokenarray.unshift('tp_vo');
-            
+
+        /* ----------------------------------------------------- */
+        // 변수 정의 (old)
+        /* ----------------------------------------------------- */
         } else if ((this.findkeyfromarr('var') != -1)
                 && (this.backupline.indexOf('.') == -1)
                 && (this.backupline.indexOf('(') == -1)
@@ -610,9 +607,56 @@ jsparser.prototype.inserttoken = function() {
                 && (!this.recognizetfe())
                 ){
 
-                    this.tokenarray.unshift('tp_gv');                  // general variable : gv
+                    this.tokenarray.unshift('tp_gv_?');                  // general variable : gv // 아래걸로 대체 삭제 할것
 
-                    
+        /* ----------------------------------------------------- */
+        // 변수 정의
+        /* ----------------------------------------------------- */
+        } else if (this.findkeyfromarr('var') !== -1) {
+                //var arr = this.currline.split("=");
+                var arr = this.backupline.split("=");                        //   var a; \n var b  인경우 처리 되지만,  var a; var b; \n인 경우 처리 안됨.
+
+                if (arr.length === 2){
+                    if (arr[1].c_trim(arr[1]).charAt(0) === '['){
+                        this.tokenarray.unshift('tp_va');                    // var array  => var a = []
+                    } else if (arr[1].c_trim(arr[1]).charAt(0) === '{'){
+                        this.tokenarray.unshift('tp_vo');                    // var object => var a = {};
+                    } else {
+                        this.tokenarray.unshift('tp_gv');                    // geneal var => var a = ''; \n var b = 0
+                    }
+                } else {
+                    this.tokenarray.unshift('tp_gv_non');                        // tp_gv_non  :  var a;
+                }
+        } else if (this.findkeyfromarr('const') !== -1) {
+                //var arr = this.currline.split("=");
+                var arr = this.backupline.split("=");                        //   let a; \n var b  인경우 처리 되지만,  var a; var b; \n인 경우 처리 안됨.
+
+                if (arr.length === 2){
+                    if (arr[1].c_trim(arr[1]).charAt(0) === '['){
+                        this.tokenarray.unshift('tp_ca');                    // const array  => const a = []
+                    } else if (arr[1].c_trim(arr[1]).charAt(0) === '{'){
+                        this.tokenarray.unshift('tp_co');                    // const object => const a = {};
+                    } else {
+                        this.tokenarray.unshift('tp_gc');                    // geneal const => const a = ''; \n var b = 0
+                    }
+                } else {
+                    this.tokenarray.unshift('tp_gc_non');                        // tp_gc_non  :  const a;
+                }
+        } else if (this.findkeyfromarr('let') !== -1) {
+                //var arr = this.currline.split("=");
+                var arr = this.backupline.split("=");                        //   let a; \n var b  인경우 처리 되지만,  var a; var b; \n인 경우 처리 안됨.
+
+                if (arr.length === 2){
+                    if (arr[1].c_trim(arr[1]).charAt(0) === '['){
+                        this.tokenarray.unshift('tp_la');                    // let array  => var a = []
+                    } else if (arr[1].c_trim(arr[1]).charAt(0) === '{'){
+                        this.tokenarray.unshift('tp_lo');                    // let object => var a = {};
+                    } else {
+                        this.tokenarray.unshift('tp_gl');                    // geneal let => var a = ''; \n var b = 0
+                    }
+                } else {
+                    this.tokenarray.unshift('tp_gl_non');                        // tp_gl_non  :  let a;
+                }
 
         /* ----------------------------------------------------- */
         // tp_if  : Immediately invoked function

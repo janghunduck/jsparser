@@ -25,14 +25,19 @@ ssa =
 
  ssa =
 " <script> \n" +
+
+" var ab; \n" +
+" var ab,cd; \n" +
 "  var ab = '';           // general var   (gv) \n" +
 "  let ab = '';           // general let   (gl) \n" +
 "  const ab = '';         // general const (gc) \n" +
 "  var ast = [   ];          // var array     (va) \n" +
 "  let ast = [   ];          // let array     (la) \n " +
 "  const ast = [ ];        // const array   (ca) \n" +
+"  var ast = {   };          // var object     (vo) \n" +
+"  let ast = {   };          // let object     (lo) \n " +
+"  const ast = { };        // const object   (co) \n" +
 " </script> \n" ;
-
 
 
 
