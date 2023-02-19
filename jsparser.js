@@ -571,9 +571,9 @@ jsparser.prototype.inserttoken = function() {
                     } else if((this.backupline.indexOf('=') !== -1)
                       && (this.findkeyfromarr('var') != -1)
                       ) {
-                         this.tokenarray.unshift('tp_gvoa');
+                         this.tokenarray.unshift('tp_gv_oa');  // var x = obj.ab()
                     } else {
-                        this.tokenarray.unshift('tp_oa');
+                        this.tokenarray.unshift('tp_oa');     // obj.ab()
                     }
 
         } else if (this.findkeyfromarr('new') > 0) {
@@ -582,6 +582,10 @@ jsparser.prototype.inserttoken = function() {
             } else {
                 this.tokenarray.unshift('tp_no');               // new object  : no
             }
+            
+        /* ----------------------------------------------------- */
+        // 변수 정의 (old)
+        /* ----------------------------------------------------- */
         } else if ((this.findkeyfromarr('var') != -1)
                 && (this.backupline.indexOf('{') != -1)
                 && (this.findkeyfromarr('function') == -1)

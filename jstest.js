@@ -40,8 +40,41 @@ ssa =
 " </script> \n" ;
 
 
-
-
+ssa =
+" <html> \n" +
+"   <head> \n" +
+"     <title>Read Text File Tutorial</title> \n" +
+"  \n" +
+"     <script type='text/javascript' src='htmlparser.js'></script> \n" +
+"   </head> \n" +
+"   <body> \n" +
+"     <input type='file' onchange='loadFile(this.files[0])'> \n" +
+"     <input type='file' name='inputFile' id='inputFile'> \n" +
+"     <br> \n" +
+"     <pre id='output'></pre> \n" +
+"     <script> \n" +
+"          var text; \n" +
+"          async function loadFile(file) { \n" +
+"             let text = await file.text(); \n" +
+"             document.getElementById('output').textContent = text; \n" +
+"  \n" +
+"             var xml = HTMLtoXML(text); \n" +
+"  \n" +
+"             console.log('',xml); \n" +
+"          } \n" +
+"  \n" +
+"  \n" +
+"         document.getElementById('inputFile').addEventListener('change', function() { \n" +
+"            var file = new FileReader(); \n" +
+"            file.onload = () => { \n" +
+"              document.getElementById('output').textContent = file.result; \n" +
+"            } \n" +
+"             file.readAsText(this.files[0]); \n" +
+"         }); \n" +
+"     </script> \n" +
+"   </body> \n" +
+" </html> \n" +
+"  \n" ;
 
 
 
