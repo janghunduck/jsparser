@@ -4,8 +4,8 @@
 
 ### flowjs.html   (main) <br/>
 
-        var PP = new Parhtml(ssa); <br/>
-        PP.parserunit(); <br/>
+        var PP = new Parhtml(ssa); 
+        PP.parserunit(); 
 
         console.log("=>[tokens: ]", '\n' + PP.tostringtokens()); <br/>
         console.log("=>[traces: ]", PP.getTracefilelst()); <br/>
