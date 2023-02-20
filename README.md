@@ -13,8 +13,11 @@ console.log("=>[script: ]", PP.getInlineScript()); <br/>
 
 var scripts = PP.getInlineScript(); <br/>
 for(var i=0; i < scripts.length; i++){ <br/>
+
         var pj = new jsparser(String(scripts[i]), false); <br/>
+        
         pj.parserjs(); <br/>
+        
         pj.tostringtokens(); <br/>
 }
 
