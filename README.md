@@ -7,16 +7,16 @@
         var PP = new Parhtml(ssa); 
         PP.parserunit(); 
 
-        console.log("=>[tokens: ]", '\n' + PP.tostringtokens()); <br/>
-        console.log("=>[traces: ]", PP.getTracefilelst()); <br/>
-        console.log("=>[script: ]", PP.getInlineScript()); <br/>
+        console.log("=>[tokens: ]", '\n' + PP.tostringtokens()); 
+        console.log("=>[traces: ]", PP.getTracefilelst()); 
+        console.log("=>[script: ]", PP.getInlineScript()); 
 
-        var scripts = PP.getInlineScript(); <br/>
-        for(var i=0; i < scripts.length; i++){ <br/>
+        var scripts = PP.getInlineScript();
+        for(var i=0; i < scripts.length; i++){
 
-                var pj = new jsparser(String(scripts[i]), false); <br/>
-                pj.parserjs(); <br/>
-                pj.tostringtokens(); <br/>
+                var pj = new jsparser(String(scripts[i]), false);
+                pj.parserjs();
+                pj.tostringtokens(); 
         }
 
 
