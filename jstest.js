@@ -76,10 +76,29 @@ ssa =
 " </html> \n" +
 "  \n" ;
 
+ssa=
 
+" 	<script type='text/javascript'> " +
+"  \n" +
+" if ( window.top == window ){ \n" +
+"  	document.location = 'default.html' ; \n" +
+"  }\n" +
 
+  " function OpenSample(sample)   \n" +
+  " {\n" +
+  " 	if ( aa > 0 ) \n" +
+  " 		test( a, 'me!!!!' ) ; \n" +
+  " }    \n" +
+  "     \n" +
+  " function ab() \n" +
+  " {\n" +
+  "    alert('~'); \n" +
+  " } \n" +
+ "  \n" +
+" " +
+" 	</script> \n" +
 
-
+"  \n" ;
 
 
 

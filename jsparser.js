@@ -1,27 +1,4 @@
 
-(function(){
-
-var jsparser3 = {
-
-                }
-
-var jsparser2 = this.jsparser2 = function(script, handler){
-    lines = script;
-    backupline = '';
-    
-    var x = ab();
-    
-    function ab(){
-       console.log("==========>>>immedietally ");
-       return 'ab';
-    }
-}
-
-});
-
-
-
-//(function(){
 
 var jsparser = function (script, isShowComment) {
 
@@ -143,8 +120,9 @@ var jsparser = function (script, isShowComment) {
                  case code === 59 || code === 0 || code === 10 || code === 13 || code === 0x2028 || code === 0x2029: // 0: eof, 59: ;
  
                      this.nexttoken = this.nexttoken.c_trim(this.nexttoken);
+                     //console.log("this.nexttoken=====>", this.nexttoken);
                      if (this.nexttoken != '') this.tokenarray.push(this.nexttoken);
-
+                     
                      this.inserttoken();                                            // tokens 에 넣는다.
                      this.inittoken();                                              // 모두 초기화
                      this.skiptoken();
@@ -158,8 +136,7 @@ var jsparser = function (script, isShowComment) {
                      //console.log("lines = %s", this.lines);
                      //console.log("backu = %s", this.backupline);
                      //console.log("this.nexttoken=====>", this.nexttoken);
-
-   
+                     
                      this.setuptoken();                                             // 토큰을 가져와 임시 arr에 적재
                      this.skiptoken();
 
@@ -181,11 +158,16 @@ var jsparser = function (script, isShowComment) {
                               this.tokenarray.push(reqitems[i]);
                           }
                      } else {                                                  // ok! object, function
-
-                         var brace = this.getbracepart('{','}');
-                         console.log("brace=%s", brace);
-                         this.tokenarray.push(brace);                  // 모든 세부사항은 배열의 끝에 넣는다 여기서는 추적하지 않는다.
-                         this.lines = this.lines.substring (brace.length);
+                         //if (this.braceCharExist()){
+                             var brace = this.getbracepart('{','}');
+                             console.log("[Main brace]=[%s]", brace);
+                             this.tokenarray.push(brace);                  // 모든 세부사항은 배열의 끝에 넣는다 여기서는 추적하지 않는다.
+                             this.lines = this.lines.substring (brace.length-1);
+                             //console.log("this.lines=[%s]", this.lines);
+                             //console.log("this.lines=[%s]", this.lines.c_replaceAll('\n','0'));
+                         //} else {
+                         
+                         //}
                      }
                      
                      if (this.currline.indexOf('try') !== -1 ){                     // try 처리
@@ -342,26 +324,25 @@ jsparser.prototype.objectbraceparser = function ( bracestr ) {
 
 
 /* s.match(/\{(.*)\}/s) 를 대체한다.  */
-/* c closechar, o openchar*/
-jsparser.prototype.getbracepart = function(o, c){
+jsparser.prototype.getbracepart = function(startc, endc){
     //var s = "ab = function() { alert('ab'); {  a  { c } b} } aaa{e}";
     var pos = 0;
 
-    var closepos = this.lines.indexOf(c);
-    var closestr = this.lines.substr(0, closepos);                   // { alert('ab'); {  a  { c
-    var cnt = countRepeatStr(closestr, o);
+    var closepos = this.lines.indexOf(endc);
+    var str = this.lines.substr(0, closepos);                   // { alert('ab'); {  a  { c
+    var cnt = countRepeatStr(str, startc);
 
     var nextstr = this.lines.substr(closepos, this.lines.length - closepos);  //  } b} } aaa{e}
 
     var foundPos = 0;
     for(var i=0; i<cnt;i++){
-        foundPos = nextstr.indexOf(c, pos)
+        foundPos = nextstr.indexOf(endc, pos)
         //alert(foundPos +'   /'+ pos);
         if(foundPos == -1) break;
         pos = foundPos + 1;
     }
 
-    return closestr + nextstr.substr(0, foundPos+1);       // } b} }
+    return str + nextstr.substr(0, foundPos+1);       // } b} }
 }
 
 jsparser.prototype.insertcomment = function (char) {
@@ -426,14 +407,18 @@ jsparser.prototype.recognizebypath = function (){
 jsparser.prototype.recognizecommonfs = function (){
     return ((this.backupline.indexOf('(') !== -1)
          && (this.backupline.indexOf(')') !== -1)
-         && (this.getnextchar(')') === '{')
+         //&& (this.getnextchar(')') === '{')
+         && (this.nextlinefirstchar(')', '{'))
           );
 }
 
 // gf : general function
 jsparser.prototype.reconizegf = function (){
+    
     return ((this.recognizecommonfs())
-        && (this.tokenarray[0] === 'function')
+        //&& (this.tokenarray[0] === 'function')
+        && (this.backupline.indexOf("function") !== -1)
+        && (this.backupline.indexOf("=") === -1)
         && (!this.reconizeif())
         );
 }
@@ -474,6 +459,7 @@ jsparser.prototype.reconizevf = function (){
     return ((this.recognizecommonfs())
         && (this.findkeyfromarr('function') != -1)
         && (this.findkeyfromarr('prototype') == -1)
+        && (this.backupline.indexOf("=") !== -1)
         && (this.tokenarray[0] != 'function')
         && (!this.reconizeif())
         && (!this.recognizejq())
@@ -525,7 +511,7 @@ jsparser.prototype.recognizerequire = function (){
 // 임시 토근 배열 1행을 tokens 배열에 넝는다.
 jsparser.prototype.inserttoken = function() {
     //console.log("this.backupline====================>>>[%s]", this.backupline);
-
+    var count = -1;
 
     if (this.tokenarray.length != 0) {
         //console.log("tokenarray=========",this.tokenarray.toString());
@@ -536,6 +522,8 @@ jsparser.prototype.inserttoken = function() {
         // tp_gf  : general function  ex: function ab()
         /* ----------------------------------------------------- */
         if (this.reconizegf()) {
+        
+            var count = this.braceExistAndLf();
             this.tokenarray.unshift('tp_gf');
             
         /* ----------------------------------------------------- */
@@ -567,7 +555,11 @@ jsparser.prototype.inserttoken = function() {
                 && (!this.recognizetfe())
                 ){
                     if (this.backupline.indexOf('window') !== -1){
-                        this.tokenarray.unshift('tp_oaw');
+                        this.tokenarray.unshift('tp_oaw');                    // window.doucment
+
+                    } else if (this.backupline.indexOf('document') !== -1){
+                        this.tokenarray.unshift('tp_oad');                    // document.getElementById
+                        
                     } else if((this.backupline.indexOf('=') !== -1)
                       && (this.findkeyfromarr('var') != -1)
                       ) {
@@ -705,16 +697,21 @@ jsparser.prototype.inserttoken = function() {
         // gst_fo, gst_if, gst_wh  : for if while global scope statement
         /* ----------------------------------------------------- */
         } else if (this.findkeyfromarr('for') != -1) {
-                    this.tokenarray.unshift('gst_fo');
+            var count = this.braceExistAndLf();
+            this.tokenarray.unshift('gst_fo');
         } else if (this.findkeyfromarr('if') != -1) {
-                   this.tokenarray.unshift('gst_if');
+        
+            var count = this.braceExistAndLf();
+            this.tokenarray.unshift('gst_if');
+            
         } else if (this.findkeyfromarr('while') != -1) {
-                   this.tokenarray.unshift('gst_wh');
+            var count = this.braceExistAndLf();
+            this.tokenarray.unshift('gst_wh');
 
         } else if ((this.findkeyfromarr('var') != -1)
                 && (this.backupline.indexOf('[') != -1)
                 ){
-                   this.tokenarray.unshift('tp_ao');
+             this.tokenarray.unshift('tp_ao');                   // array object
 
         /* ----------------------------------------------------- */
         // jq_id : $
@@ -737,7 +734,8 @@ jsparser.prototype.inserttoken = function() {
 
         /* Last Process 이건 비용이 많이든다.? */
         if ((this.findArrformSkipkeywords() === -1)){
-            this.tokenarray.unshift(this.linenumber);              
+            this.tokenarray.unshift(this.linenumber);
+            count !== -1 ? this.linenumber = this.linenumber + count : this.linenumber = this.linenumber;
             this.tokens.push(this.tokenarray);
         } else {
             console.log("alert, console 등은 넣지 않습니다.");
@@ -749,7 +747,168 @@ jsparser.prototype.inserttoken = function() {
     }
 }
 
+// {} 처리 1. { 가 첫째줄 다음줄에 올 경우, 2. {} 가 존재하지 않을 경우
+// function, if, for, while 등의 공통함수로 사용됨.
+jsparser.prototype.braceExistAndLf = function(){
 
+    if(!this.braceExist() && this.braceNextlineExist()){                   // backupline 에 { 가 없고, nextline에는 있다.
+        var brace = this.getbracepart("{","}");
+        console.log("1111111[%s]", brace.c_replaceAll('\n','0'));
+        this.tokenarray.push(brace);                                       // 모든 세부사항은 배열의 끝에 넣는다 여기서는 추적하지 않는다.
+        this.lines = this.lines.substring (brace.length);
+
+        return charcount(brace, '\n');                                     // linenumber 를 새로 계산한다.
+    } else if(!this.braceExist() && !this.braceNextlineExist()){           // if() console.log(..);    { } 가 없는 경우, 함수는 {} 부분이 없을 수 없다.
+                                                                           // backuoline, nextline 둘 다 없음
+        var idx = this.nextline.indexOf(';') + 1;
+        var str = this.lines.substr(0, idx);
+        console.log("2222222[%s]", str);
+        this.tokenarray.push('{' + str  + '}');
+        this.lines = this.lines.substring(idx);
+        return charcount(str, '\n');
+        //return count = 1;
+
+    } else if (this.braceExist()) {
+        return this.linenumber;
+        console.log("main processed!");
+    }
+}
+
+
+jsparser.prototype.braceExistAndLf_back = function(){
+
+    if(!this.braceExist() && this.braceNextlineExist()){                   // backupline 에 { 가 없고, nextline에는 있다.
+        var brace = this.getbracepart("{","}");
+        console.log("1111111[%s]", brace.c_replaceAll('\n','0'));
+        this.tokenarray.push(brace);                                       // 모든 세부사항은 배열의 끝에 넣는다 여기서는 추적하지 않는다.
+        this.lines = this.lines.substring (brace.length);
+
+        /**
+        if (brace.length > 1){
+        //if (brace.charCodeAt(0) !==  0){                                 // function ab()\n{ } 인경우 \n 를 지운다. why 1?
+            this.tokenarray.push(brace);
+            this.lines = this.lines.substring (brace.length);
+            //this.lines = '\n' + this.lines;
+            console.log("lines=[%s]", this.lines);
+
+        }
+        */
+        return charcount(brace, '\n');                      // linenumber 를 새로 계산한다.
+    } else if(!this.braceExist() && !this.braceNextlineExist()){                                                // if() console.log(..);    { } 가 없는 경우, 함수는 {} 부분이 없을 수 없다.
+                                                            // backuoline, nextline 둘 다 없음
+        var idx = this.nextline.indexOf(';') + 1;
+        var str = this.lines.substr(0, idx);
+        console.log("2222222[%s]", str);
+        this.tokenarray.push('{' + str  + '}');
+        this.lines = this.lines.substring(idx);
+        return count = 1;
+
+    } else if (this.braceExist()) {
+        console.log("main processed!");
+    }
+}
+
+// backupline 에서 { 가 있으면 true 없으면 false
+jsparser.prototype.braceExist = function(){
+    var str = this.currline.c_replaceAllChar(this.currline, ' ', '');
+    var idx = str.indexOf(')') + 1;  // ')'
+    //console.log("[%s], %d", str.charAt(idx), idx);
+    if (idx !== 0){
+        return (str.charAt(idx) === '{');
+    } else {
+        alert("[braceCharExist]err");
+    }
+}
+
+// 사용하지 않음, braceExist 와 같다.
+jsparser.prototype.braceExist2 = function(){
+    var str = this.backupline.c_replaceAllChar(this.backupline, ' ', '');
+    var idx = str.indexOf('{');
+    return idx !== -1;
+}
+
+jsparser.prototype.braceNextlineExist = function(){
+    if (!this.braceExist()){
+        var str = this.nextline.c_replaceAllChar(this.nextline, ' ', '');
+        if(str.charAt(0) === '{'){
+            return true;
+        } else {
+            return false;
+        }
+    }
+}
+
+
+// char 다음 문자를 가져온다.
+jsparser.prototype.getnextchar = function (char) {
+    var result = '';
+    //var str = this.backupline.replace(/(\s*)/g, ''); // 모든공백을 지운다.
+    var str = this.backupline.c_replaceAllChar(this.backupline, ' ', '');
+    var idx = str.indexOf(char) + 1;  // ')'
+
+    if (idx !== -1) {                 // 문자가 있는 경우 다음 문자를 가져온다.
+        return str.charAt(idx);
+    } else if (str.length = idx){     // idx가 라인의 마지막이면 다음 라인의 첫 문자를 가져온다.
+       //var str2 = this.nextline.replace(/(\s*)/g, ''); // 모든공백을 지운다.
+       var str2 = this.nextline.c_replaceAllChar(this.nextline, ' ', '');
+       return str2.charAt(0);
+    } else {
+       // error
+       alert("nextchar error");
+    }
+}
+
+// getnextchar(')', '{')
+/*
+jsparser.prototype.getnextbarcechar = function (char, checkchar) {
+    var result = '';
+    //var str = this.backupline.replace(/(\s*)/g, ''); // 모든공백을 지운다.
+    var str = this.backupline.c_replaceAllChar(this.backupline, ' ', '');
+    var idx = str.indexOf(char) + 1;  // ')'
+
+    if (idx !== -1) {                 // 문자가 있는 경우 다음 문자를 가져온다.
+       if (str.charAt(idx) !== checkchar){  // backupline 에 { 가 없으면
+           var str2 = this.nextline.c_replaceAllChar(this.nextline, ' ', '');
+           var c = str2.charAt(0);
+       }
+    }
+}
+*/
+
+jsparser.prototype.nextlinefirstchar = function (char, nchar) {
+    if (this.getnextchar(char) !== nchar){
+        var str = this.nextline.c_replaceAllChar(this.nextline, ' ', '');
+        return str.charAt(0) === nchar;
+    } else {
+        return true;
+    }
+}
+
+
+
+jsparser.prototype.setuptoken = function() {
+
+    this.token = this.nexttoken;       // 첫 공백일때
+    this.tokenarray.push(this.token);
+    this.prevtoken = this.tokenarray[this.tokenarray.length-2];
+    this.nntoken = this.getnnttoken(this.lines);
+
+    if ((this.token === 'for') || (this.token === 'if') || (this.token === 'while')){
+
+        var str =this.zerotostrings(')');
+        this.tokenarray.push(str);
+        this.lines = this.lines.substring(str.length-1);
+
+
+    } else if (this.token === 'require') {
+        var idx = this.lines.indexOf(')');
+        var str = this.lines.substr(0, idx);
+        str = rangestr(str, "'", "'");
+        this.tokenarray.push(str);
+        this.lines = this.lines.substring(idx);
+    }
+
+}
 
 jsparser.prototype.setupjquery = function () {
 
@@ -805,29 +964,7 @@ jsparser.prototype.setupjquery = function () {
 
 }
 
-jsparser.prototype.setuptoken = function() {
 
-    this.token = this.nexttoken;       // 첫 공백일때
-    this.tokenarray.push(this.token);
-    this.prevtoken = this.tokenarray[this.tokenarray.length-2];
-    this.nntoken = this.getnnttoken(this.lines);
-
-    if ((this.token === 'for') || (this.token === 'if') || (this.token === 'while')){
-        var str =this.zerotostrings(')');
-        this.tokenarray.push(str);
-        this.lines = this.lines.substring(str.length-1);
-    } else if (this.token === 'require') {
-        var idx = this.lines.indexOf(')');
-        var str = this.lines.substr(0, idx);
-        str = rangestr(str, "'", "'");
-        this.tokenarray.push(str);
-        this.lines = this.lines.substring(idx);
-    }
-    
-    
-    //console.log("line==>[%s]", this.lines);
-    //console.log("-------token: %s", this.token);
-}
 
 // 0 ~ char 문자까지 잘라서 문자열을 리턴
 jsparser.prototype.zerotostrings = function(char){
@@ -950,22 +1087,8 @@ jsparser.prototype.getcurrline = function(){
     return str;
 }
 
-// char 다음 문자를 가져온다.
-jsparser.prototype.getnextchar = function (char) {
-    //var str = this.backupline.replace(/(\s*)/g, ''); // 모든공백을 지운다.
-    var str = this.backupline.c_replaceAllChar(this.backupline, ' ', '');
-    var idx1 = str.indexOf(char);
-    if (idx1 > -1) {
-        return str.charAt(idx1+1);
-    } else if (str.length = idx1){  // idx가 라인의 마지막이면 다음 라인의 첫 문자를 가져온다.
-       //var str2 = this.nextline.replace(/(\s*)/g, ''); // 모든공백을 지운다.
-       var str2 = this.nextline.c_replaceAllChar(this.nextline, ' ', '');
-       return str2.charAt(0);
-    } else {
-       // error
-    }
 
-}
+
 
 // 라인에서 'function' 같은 keyword가 있는지 체크 작동하지 않음.
 jsparser.prototype.checkkeywordinline = function(keystr, tok){
@@ -1064,24 +1187,24 @@ jsparser.prototype.emptytoken = function(){
 }
 
 jsparser.prototype.parserjs = function() {  // parserunit
-        var i = 0;
-        console.log("===================================== Jsparsing starting =========================================== \n ");
-        //console.log("lines length =", this.lines.length);
+    var i = 0;
+    console.log("===================================== Jsparsing starting =========================================== \n ");
+    //console.log("lines length =", this.lines.length);
 
-        var code = this.lines.charCodeAt(this.lines.length);
-        if (code === 0 || code === 10 || code === 13 || code === 0x2028 || code === 0x2029) {
-        } else {
-           this.lines = this.lines + String.fromCharCode(code);
-        }
+    var code = this.lines.charCodeAt(this.lines.length);
+    if (code === 0 || code === 10 || code === 13 || code === 0x2028 || code === 0x2029) {
+    } else {
+        this.lines = this.lines + String.fromCharCode(code);
+    }
 
-        while (this.lines) {
-           this.getnexttoken();
+    while (this.lines) {
+        this.getnexttoken();
 
-           if (this.lines.length === 0)  break;
+        if (this.lines.length === 0)  break;
 
-           //if (i == 100) break;
-           i++;
-        }
+        //if (i == 100) break;
+        i++;
+    }
 }
 
 
@@ -1104,31 +1227,3 @@ jsparser.prototype.tostringtokens = function () {
         
 }
 
-jsparser.prototype.test = function(){
-    //console.log("It's Testing ....................................................");
-}
-
-var testjs1 =
-             "var x; \n" +
-             "function ab () {   \n"+
-	     "     alert('ab') \n"+
-             "}  \n"+
-             '';
-
-
-//var pj = new jsparser("var x; var y; var z= 100000;");
-//var pj = new jsparser("var x=9 ;var y; var a,b;");
-
-//var pj = new jsparser(" function ab () {   \n } ");
-//var pj = new jsparser(testjs1);
-//var pj = new jsparser("var obj= new ab  (); ");
-/*
-var pj = new jsparser("ab = function() {  \n   alert('ab') }");
-pj.parserjs();
-pj.tostringtokens();
-*/
-//console.log("", eval("rangestr('${#aaf})', '{', '}')"));
-/**/
-
-
-//})();

@@ -155,8 +155,8 @@ var Parhtml = function (html, targetfile) {
 
                     break;
                 case a === '(' || a === ')' || a === '[' || a === ']' || a === ';' || a === ',' || a === '.' || a === '^' || a === '*' || a === '=':
-
                 case (a >= 'A' && a <= 'Z') || (a >= 'a' && a <= 'z') || a === '_' || a === '@' || a === '-':  // 문자
+                case code === 8220 || code === 8221 || code === 167 || code === 63 || code === 8217 || code === 37:     //“, ”, §, ? , ` , % 특수문자
                     if ((isDepthEnd) && (!isMetalink)) {
                        if (isBracketInOut) {
                          this.skiptoken();
@@ -169,6 +169,7 @@ var Parhtml = function (html, targetfile) {
                     }
 
                     break;
+                /*
                 case code === 8220 || code === 8221 || code === 167 || code === 63 || code === 8217 || code === 37:     //“, ”, §, ? , ` , % 특수문자
                        if (isBracketInOut) {
                          this.skiptoken();
@@ -176,6 +177,7 @@ var Parhtml = function (html, targetfile) {
                          this.addone();
                        }
                        break;
+                */
                 default:
                     //throw Error("Error : swich default, char is not definition, [%s]", a);
                     //window.alert("[Fatal Error] : swich default, char is not definition, [" + a + "]" );
@@ -252,19 +254,18 @@ Parhtml.prototype.emptytoken = function(){
 }
 
 Parhtml.prototype.parserunit = function() {  // parserunit
-        var i = 0;
-        //console.log("lines=",this.lines);
-        //console.log("lines length =", this.lines.length);
-        llog = llog + 'this.lines.length : ' + this.lines.length + '\n';
-        llog = llog + 'this.lines : ' + this.lines + '\n';
+    var i = 0;
 
-        while (this.lines) {
-           this.getnexttoken();
-           if (this.lines.length === 0)  break;
+    llog = llog + 'this.lines.length : ' + this.lines.length + '\n';
+    llog = llog + 'this.lines : ' + this.lines + '\n';
 
-           //if (i == 246) break;
-           i++;
-        }
+    while (this.lines) {
+        this.getnexttoken();
+        if (this.lines.length === 0)  break;
+
+        //if (i == 246) break;
+        i++;
+    }
 }
 
 // getnexttoken 함수 안에서 사용하지 말고 밖에서 사용한다.
@@ -300,7 +301,7 @@ Parhtml.prototype.tostringtokens = function () {
            n = this.tokenobj[i];
            if (n.data == undefined) n.data = '';
            str = str + n.depth + ' | ' + n.tagname + ' | ' + n.data + ' | ' + n.tagevent + '\n';
-           console.log("=>", this.tokenobj[i]);
+           //console.log("=>", this.tokenobj[i]);
     }
 
     if (this.depth == 0) {

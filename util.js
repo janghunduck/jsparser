@@ -1,6 +1,6 @@
 
 
-var keywords = makearray("html,head,title,body,table,tr,td,div,meta,link,script,p,span,img,input,select,option,b,button,a,form,hr,br,ul,li,ol,label,datalist,nav,h1,h2,h3,h4,textarea,code,kbd");
+var keywords = makearray("html,head,title,body,table,tr,td,div,meta,link,script,p,span,img,input,select,option,b,button,a,form,hr,br,ul,li,ol,label,datalist,nav,h1,h2,h3,h4,textarea,code,kbd,pre");
 var metalinktags = makearray("meta,link,input,img,br,hr");
 
 /*
