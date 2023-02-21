@@ -1,0 +1,32 @@
+
+<input type='hidden' id='checkvalue' value='yes' />
+
+<script>
+
+var data = [];
+var $checkvalue = $('#checkvalue').val();
+if($checkvalue === 'yes'){
+    alert('');
+    data.put($checkvalue);
+}
+
+if($('#checkvalue').val() === 'yes'){
+    alert('');
+    data.put($checkvalue);
+}
+
+$titlePanels = [$('#title-panel-1'), $('#title-panel-2')];
+$nameField = $('#player-name-field');
+$warningContainer = $('#initial-warning');
+$titleContainer = $('#main-title-container');
+$sizeBlocks = { male: $('#male-size-container'), female: $('#female-size-container') };
+$clothingTable = $('#title-clothing-table');
+$warningLabel = $('#title-warning-label');
+$titleCandy = [$('#left-title-candy'), $('#right-title-candy')];
+
+var $gameLoadLabel = $('.game-load-label');
+var $gameLoadProgress = $('.game-load-progress');
+
+
+
+</script>

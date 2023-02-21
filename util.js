@@ -3,6 +3,10 @@
 var keywords = makearray("html,head,title,body,table,tr,td,div,meta,link,script,p,span,img,input,select,option,b,button,a,form,hr,br,ul,li,ol,label,datalist,nav,h1,h2,h3,h4,textarea,code,kbd,pre");
 var metalinktags = makearray("meta,link,input,img,br,hr");
 
+function isNewLine(code) {
+    return code === 10 || code === 13 || code === 0x2028 || code === 0x2029
+}
+
 /*
 Parhtml.prototype.checkKeywords = function (str) {
 

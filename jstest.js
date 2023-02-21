@@ -101,4 +101,54 @@ ssa=
 "  \n" ;
 
 
+ssa =
+" <input type='hidden' id='checkvalue' value='yes' /> \n" +
+"  \n" +
+" <script> \n" +
+"  \n" +
+" var data = []; \n" +
+" var $checkvalue = $('#checkvalue').val(); \n" +
+" if($checkvalue === 'yes'){ \n" +
+"     alert(''); \n" +
+"     data.put($checkvalue); \n" +
+" } \n" +
+"  \n" +
+" if($('#checkvalue').val() === 'yes'){ \n" +
+"     alert(''); \n" +
+"     data.put($checkvalue); \n" +
+" } \n" +
+"  \n" +
+" $titlePanels = [$('#title-panel-1'), $('#title-panel-2')]; \n" +
+" $nameField = $('#player-name-field'); \n" +
+" $warningContainer = $('#initial-warning'); \n" +
+" $titleContainer = $('#main-title-container'); \n" +
+" $sizeBlocks = { male: $('#male-size-container'), female: $('#female-size-container') }; \n" +
+" $clothingTable = $('#title-clothing-table'); \n" +
+" $warningLabel = $('#title-warning-label'); \n" +
+" $titleCandy = [$('#left-title-candy'), $('#right-title-candy')]; \n" +
+"  \n" +
+" var $gameLoadLabel = $('.game-load-label'); \n" +
+" var $gameLoadProgress = $('.game-load-progress'); \n" +
+"  \n" +
+"  \n" +
+"  \n" +
+" </script> \n" ;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

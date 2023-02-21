@@ -95,7 +95,7 @@ var Parhtml = function (html, targetfile) {
                     this.addone();
                     break;
                 case a === '<':
-
+                    
                     this.nexttoken = this.nexttoken.c_trim(this.nexttoken);
                     if (this.isCommentordoctype(a)) {                                 // <!-- --> comment , <!DOCTYPE HTML ....>  skip, 처리는 ! 에서 삭제
                          this.skiptoken();
@@ -118,11 +118,13 @@ var Parhtml = function (html, targetfile) {
                     if ((isDepthEnd) && (!isMetalink)) { this.skiptoken(); break; };                 // depth 가 마지막이면 나감 depth === 0 경우
                     this.nexttoken = this.nexttoken.c_trim(this.nexttoken);
                     this.token = this.nexttoken;
-
-                    if (this.nexttoken !== '') this.inserttoken();                                                              // token 생성, token 마다 계속 생성된다.
+                    this.depth++;                            // metalink 때문에 insert 전에 먼저 depth를 증가시겨줘야 함 아래에걸 이동.
+                    if (this.nexttoken !== '') {
+                        this.inserttoken();                                                              // token 생성, token 마다 계속 생성된다.
+                    }
+                    
                     if (this.tagdata !== '') {
                         this.updatetagdata(this.tokenobj.length-1, 'tagdata');  // tagdata update
-
                     }
                     if (this.nexttoken === 'script'){
                         var index = this.lines.indexOf('</script>');
@@ -136,20 +138,21 @@ var Parhtml = function (html, targetfile) {
                         //this.lines = this.lines.replace(/<br\s*\/>/, "<br>")   // <br /> => <br>
                         if (this.nexttoken === 'br') { this.depth--; }  // ? 종결자가 없는 tag 의 경우
                         if (this.nexttoken === 'hr') { this.depth--; }  // ?
+                        
                     }
 
-
                     this.skiptoken();
-                    this.depth++
+                    // this.depth++
                     isMetalink = false;
                     isBracketInOut = false;
 
                     break;
                 case a === '/':        // '/' 는 depth 를 판단하는 기준
+                    
                     this.skiptoken();
                     this.depth !== 0 ? isDepthEnd = true : isDepthEnd = false;
                     this.depth--;
-
+                    
                     var idx = findChar(this.lines, '>');
                     this.lines = this.lines.substring(idx);  // </ ...> 를 지움
 

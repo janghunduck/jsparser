@@ -61,6 +61,8 @@ var jsparser = function (script, isShowComment) {
          //this.lines = "let ab = require('js2flowchart'); ";
          //this.lines = "$('.frame_id, #frame_class').show()";
          //this.lines = "$(window).load( game.run() )";
+         this.lines = " $titlePanels = [$('#title-panel-1'), $('#title-panel-2')]; \n";
+         this.lines = " var $titleField = $('#player-name'); \n";
          //this.lines = "$(document).ready( function (){}) ";
          //this.lines = "$('#img_btn').click( function(){  } )";
          //this.lines = "try { } finally {} ";
@@ -200,7 +202,7 @@ var jsparser = function (script, isShowComment) {
                  case a === '[':                                                        // array
                      var brace = this.getbracepart('[',']');
                      this.tokenarray.push(brace);
-                     this.lines = this.lines.substring (brace.length);
+                     this.lines = this.lines.substring (brace.length-1);
                      
                      this.skiptoken();
                      break;
@@ -236,6 +238,7 @@ var jsparser = function (script, isShowComment) {
                      break;
              };
 
+
              if (isNewLine(code)) {
                     this.backupline = '';
                     this.linenumber === 1 ? this.nextline = this.getcurrline() : this.nextline = this.getnextline();
@@ -245,7 +248,7 @@ var jsparser = function (script, isShowComment) {
                     this.backupline = this.backupline + a;  
              }
 
-             return true;
+             // return this;
          };
 }
 
@@ -521,9 +524,10 @@ jsparser.prototype.inserttoken = function() {
         /* ----------------------------------------------------- */
         // tp_gf  : general function  ex: function ab()
         /* ----------------------------------------------------- */
-        if (this.reconizegf()) {
+        if ((this.reconizegf()) &&
+             (!this.recognizejq())){
         
-            var count = this.braceExistAndLf();
+            var count = this.braceExistAndLf('function');
             this.tokenarray.unshift('tp_gf');
             
         /* ----------------------------------------------------- */
@@ -553,6 +557,7 @@ jsparser.prototype.inserttoken = function() {
                 
                 && (!this.recognizepf())
                 && (!this.recognizetfe())
+                && (!this.recognizejq())
                 ){
                     if (this.backupline.indexOf('window') !== -1){
                         this.tokenarray.unshift('tp_oaw');                    // window.doucment
@@ -601,6 +606,7 @@ jsparser.prototype.inserttoken = function() {
                 && (!this.reconizegf())
                 && (!this.recognizepf())
                 && (!this.recognizetfe())
+                && (!this.recognizejq())
                 ){
 
                     this.tokenarray.unshift('tp_gv_?');                  // general variable : gv // 아래걸로 대체 삭제 할것
@@ -608,7 +614,9 @@ jsparser.prototype.inserttoken = function() {
         /* ----------------------------------------------------- */
         // 변수 정의
         /* ----------------------------------------------------- */
-        } else if (this.findkeyfromarr('var') !== -1) {
+        } else if ((this.findkeyfromarr('var') !== -1)
+               && (!this.recognizejq())
+                ) {
                 //var arr = this.currline.split("=");
                 var arr = this.backupline.split("=");                        //   var a; \n var b  인경우 처리 되지만,  var a; var b; \n인 경우 처리 안됨.
 
@@ -623,7 +631,9 @@ jsparser.prototype.inserttoken = function() {
                 } else {
                     this.tokenarray.unshift('tp_gv_non');                        // tp_gv_non  :  var a;
                 }
-        } else if (this.findkeyfromarr('const') !== -1) {
+        } else if ((this.findkeyfromarr('const') !== -1)
+               && (!this.recognizejq())
+                ) {
                 //var arr = this.currline.split("=");
                 var arr = this.backupline.split("=");                        //   let a; \n var b  인경우 처리 되지만,  var a; var b; \n인 경우 처리 안됨.
 
@@ -638,7 +648,9 @@ jsparser.prototype.inserttoken = function() {
                 } else {
                     this.tokenarray.unshift('tp_gc_non');                        // tp_gc_non  :  const a;
                 }
-        } else if (this.findkeyfromarr('let') !== -1) {
+        } else if ((this.findkeyfromarr('let') !== -1)
+               && (!this.recognizejq())
+                ) {
                 //var arr = this.currline.split("=");
                 var arr = this.backupline.split("=");                        //   let a; \n var b  인경우 처리 되지만,  var a; var b; \n인 경우 처리 안됨.
 
@@ -701,7 +713,7 @@ jsparser.prototype.inserttoken = function() {
             this.tokenarray.unshift('gst_fo');
         } else if (this.findkeyfromarr('if') != -1) {
         
-            var count = this.braceExistAndLf();
+            var count = this.braceExistAndLf('gs');
             this.tokenarray.unshift('gst_if');
             
         } else if (this.findkeyfromarr('while') != -1) {
@@ -714,11 +726,11 @@ jsparser.prototype.inserttoken = function() {
              this.tokenarray.unshift('tp_ao');                   // array object
 
         /* ----------------------------------------------------- */
-        // jq_id : $
+        // tp_jq : $
         /* ----------------------------------------------------- */
         } else if (this.recognizejq()){
-                   //this.tokenarray.unshift('jq_');
-             // 앞단에서 모두 처리함.
+            this.tokenarray.unshift('tp_jq');
+            // 앞단에서 모두 처리함.
         /* ----------------------------------------------------- */
         // tp_require  : var ab = require('./ku.js');
         /* ----------------------------------------------------- */
@@ -749,16 +761,20 @@ jsparser.prototype.inserttoken = function() {
 
 // {} 처리 1. { 가 첫째줄 다음줄에 올 경우, 2. {} 가 존재하지 않을 경우
 // function, if, for, while 등의 공통함수로 사용됨.
-jsparser.prototype.braceExistAndLf = function(){
+jsparser.prototype.braceExistAndLf = function(strtype){
 
-    if(!this.braceExist() && this.braceNextlineExist()){                   // backupline 에 { 가 없고, nextline에는 있다.
+    if((!this.braceExist()) &&
+       (this.braceNextlineExist()) &&
+       (strtype === 'function')){                   // backupline 에 { 가 없고, nextline에는 있다.
         var brace = this.getbracepart("{","}");
         console.log("1111111[%s]", brace.c_replaceAll('\n','0'));
         this.tokenarray.push(brace);                                       // 모든 세부사항은 배열의 끝에 넣는다 여기서는 추적하지 않는다.
         this.lines = this.lines.substring (brace.length);
 
         return charcount(brace, '\n');                                     // linenumber 를 새로 계산한다.
-    } else if(!this.braceExist() && !this.braceNextlineExist()){           // if() console.log(..);    { } 가 없는 경우, 함수는 {} 부분이 없을 수 없다.
+    } else if((!this.braceExist()) &&
+              (!this.braceNextlineExist()) &&
+              (strtype === 'gs')){           // if() console.log(..);    { } 가 없는 경우, 함수는 {} 부분이 없을 수 없다.
                                                                            // backuoline, nextline 둘 다 없음
         var idx = this.nextline.indexOf(';') + 1;
         var str = this.lines.substr(0, idx);
@@ -775,39 +791,6 @@ jsparser.prototype.braceExistAndLf = function(){
 }
 
 
-jsparser.prototype.braceExistAndLf_back = function(){
-
-    if(!this.braceExist() && this.braceNextlineExist()){                   // backupline 에 { 가 없고, nextline에는 있다.
-        var brace = this.getbracepart("{","}");
-        console.log("1111111[%s]", brace.c_replaceAll('\n','0'));
-        this.tokenarray.push(brace);                                       // 모든 세부사항은 배열의 끝에 넣는다 여기서는 추적하지 않는다.
-        this.lines = this.lines.substring (brace.length);
-
-        /**
-        if (brace.length > 1){
-        //if (brace.charCodeAt(0) !==  0){                                 // function ab()\n{ } 인경우 \n 를 지운다. why 1?
-            this.tokenarray.push(brace);
-            this.lines = this.lines.substring (brace.length);
-            //this.lines = '\n' + this.lines;
-            console.log("lines=[%s]", this.lines);
-
-        }
-        */
-        return charcount(brace, '\n');                      // linenumber 를 새로 계산한다.
-    } else if(!this.braceExist() && !this.braceNextlineExist()){                                                // if() console.log(..);    { } 가 없는 경우, 함수는 {} 부분이 없을 수 없다.
-                                                            // backuoline, nextline 둘 다 없음
-        var idx = this.nextline.indexOf(';') + 1;
-        var str = this.lines.substr(0, idx);
-        console.log("2222222[%s]", str);
-        this.tokenarray.push('{' + str  + '}');
-        this.lines = this.lines.substring(idx);
-        return count = 1;
-
-    } else if (this.braceExist()) {
-        console.log("main processed!");
-    }
-}
-
 // backupline 에서 { 가 있으면 true 없으면 false
 jsparser.prototype.braceExist = function(){
     var str = this.currline.c_replaceAllChar(this.currline, ' ', '');
@@ -816,7 +799,7 @@ jsparser.prototype.braceExist = function(){
     if (idx !== 0){
         return (str.charAt(idx) === '{');
     } else {
-        alert("[braceCharExist]err");
+        //alert("[braceCharExist]err");
     }
 }
 
@@ -912,56 +895,65 @@ jsparser.prototype.setuptoken = function() {
 
 jsparser.prototype.setupjquery = function () {
 
-                     // ('#img_btn')  substring
-                     var idx = this.lines.indexOf(')') + 1;
-                     var str = this.lines.substr(0, idx);
+    var str = this.zerotostrings("\n");
+    var arr = str.split("=");
 
-                     // str 에서 ' ' or " " 가 있는지 확인 => 처음 들어올때 " 는 ' 로 replace 된다.
-                     var charcnt = charcount(str,"'");
-                     if (charcnt === 2) {
-                         str = rangestr(str, "'","'");      // ' ' 부분을 가져온다. "" 가 될수도 있다.
+    if (arr.length === 2){
+        this.tokenarray.push("jq_var");
+        this.tokenarray.push(trim(arr[0]));
+        this.lines = this.lines.substring(arr[0].length-1);
+    } else {
 
-                         var arr = str.split(',');
-                         //console.log("$===============>%d, %s", charcnt, arr[0]);
-                         var typename = '';
-                         var name = '';
-
-                         for(var i=0; i<arr.length; i++){
-                             var s = arr[i].trim();
-                             var c = s.charAt(0);
-
-                             if(c === '#'){
-                                i === 0 ? typename = typename + 'jq_id' : typename = typename + ',' + 'jq_id';
-                             } else if (c === '.'){
-                                i === 0 ? typename = typename + 'jq_class' : typename = typename + ',' + 'jq_class';
-                             } else {
-                                i === 0 ? typename = typename + 'jq_class' : typename = typename + ',' + 'jq_html';
-                             }
-
-                             s = s.substr(1, s.length-1);
-                             i === 0 ? name = name +s: name = name + ',' +s
-
-                             //console.log("=======>>>>%s, %s", typename, name);
-                         } // end for
-                         //this.tokenarray.push(this.linenumber);
-                         this.tokenarray.push(typename);
-                         this.tokenarray.push(name);
-                         this.lines = this.lines.substring(idx);
-                         //console.log("lines:%s, %d", this.lines, idx);
-
-                     }  else { //  '  ' 가 없은 경우
-                         // jq_dom,jq_function 처리
-                         str = rangestr(str, '(',')');
-                         if ((str === 'window') || (str === 'document')){
-                             this.tokenarray.push('jq_dom');                // 전역 DOM
-                         } else if (str.indexOf('function') !== -1) {
-                             this.tokenarray.push('jq_function');           // $(function (){});
-                         }
-                         this.tokenarray.push(str);
-                         this.lines = this.lines.substring(idx);
-
-                     }
-
+        // ('#img_btn')  substring
+        var idx = this.lines.indexOf(')') + 1;
+        var str = this.lines.substr(0, idx);
+        
+        // str 에서 ' ' or " " 가 있는지 확인 => 처음 들어올때 " 는 ' 로 replace 된다.
+        var charcnt = charcount(str,"'");
+        if (charcnt === 2) {
+            str = rangestr(str, "'","'");      // ' ' 부분을 가져온다. "" 가 될수도 있다.
+        
+            var arr = str.split(',');
+            //console.log("$===============>%d, %s", charcnt, arr[0]);
+            var typename = '';
+            var name = '';
+        
+            for(var i=0; i<arr.length; i++){
+                var s = arr[i].trim();
+                var c = s.charAt(0);
+        
+                if(c === '#'){
+                   i === 0 ? typename = typename + 'jq_id' : typename = typename + ',' + 'jq_id';
+                } else if (c === '.'){
+                   i === 0 ? typename = typename + 'jq_class' : typename = typename + ',' + 'jq_class';
+                } else {
+                   i === 0 ? typename = typename + 'jq_class' : typename = typename + ',' + 'jq_html';
+                }
+        
+                s = s.substr(1, s.length-1);
+                i === 0 ? name = name +s: name = name + ',' +s
+        
+                    //console.log("=======>>>>%s, %s", typename, name);
+            } // end for
+            //this.tokenarray.push(this.linenumber);
+            this.tokenarray.push(typename);
+            this.tokenarray.push(name);
+            this.lines = this.lines.substring(idx);
+            //console.log("lines:%s, %d", this.lines, idx);
+        
+        }  else { //  '  ' 가 없은 경우
+            // jq_dom,jq_function 처리
+            str = rangestr(str, '(',')');
+            if ((str === 'window') || (str === 'document')){
+                this.tokenarray.push('jq_dom');                // 전역 DOM
+            } else if (str.indexOf('function') !== -1) {
+                this.tokenarray.push('jq_function');           // $(function (){});
+            }
+            this.tokenarray.push(str);
+            this.lines = this.lines.substring(idx);
+        }
+    
+    }
 }
 
 
@@ -990,10 +982,6 @@ jsparser.prototype.initkeywords = function(){
     }
 }
 */
-
-function isNewLine(code) {
-    return code === 10 || code === 13 || code === 0x2028 || code === 0x2029
-}
 
 
 
@@ -1081,13 +1069,10 @@ jsparser.prototype.getnextline = function(){
 }
 
 jsparser.prototype.getcurrline = function(){
-    
     var idx1 = this.lines.indexOf('\n') + 1;
     var str = this.lines.substr(0, idx1);
     return str;
 }
-
-
 
 
 // 라인에서 'function' 같은 keyword가 있는지 체크 작동하지 않음.
@@ -1102,7 +1087,6 @@ jsparser.prototype.checkkeywordinline = function(keystr, tok){
     } else { //업으면 -1 리턴
         return false;
     }
-
 }
 
 jsparser.prototype.checkkeyword = function(){
@@ -1116,6 +1100,7 @@ jsparser.prototype.checkkeyword = function(){
         } else {
             return '';
         }
+        // this.keywords[key] ? key : '';
     }
 }
 
@@ -1145,6 +1130,7 @@ jsparser.prototype.keywordexist = function (key) {
         } else {
             return false;
         }
+        // return keys[i] == key;
     }
 }
 
@@ -1171,11 +1157,6 @@ jsparser.prototype.skiptoken = function() {
 
 jsparser.prototype.addone = function() {  // parserunit
 
-    //console.log("nexttoken= %s, lines= %s, index= %d", this.nexttoken, this.lines, this.currindex);
-    //if ((this.tokenseq != 0) && (this.nexttoken.length > 1)) {
-    //    this.prevtoken = this.nexttoken + this.lines.charAt(0);
-    //}
-
     this.nexttoken = this.nexttoken + this.lines.charAt(0);   // line 의 한문자를 가져온다.
     this.lines = this.lines.substring(1);                     // line 에서 한문자를 제거
     this.currindex++;
@@ -1187,43 +1168,32 @@ jsparser.prototype.emptytoken = function(){
 }
 
 jsparser.prototype.parserjs = function() {  // parserunit
-    var i = 0;
-    console.log("===================================== Jsparsing starting =========================================== \n ");
-    //console.log("lines length =", this.lines.length);
+    console.log("========================== Jsparsing starting ======================= \n ");
 
     var code = this.lines.charCodeAt(this.lines.length);
-    if (code === 0 || code === 10 || code === 13 || code === 0x2028 || code === 0x2029) {
-    } else {
+    if (!isNewLine(code)){
         this.lines = this.lines + String.fromCharCode(code);
+    }
+    
+    if (this.linenumber === 1) {
+        this.nextline = this.getnextline();
+        this.currline = this.getcurrline();
     }
 
     while (this.lines) {
         this.getnexttoken();
-
         if (this.lines.length === 0)  break;
-
-        //if (i == 100) break;
-        i++;
     }
 }
 
-
-
 jsparser.prototype.tostringtokens = function () {
-        var n = [];
         var result = '';
 
 	for ( var i = 0; i < this.tokens.length; i++ ){
-           n = this.tokens[i];
-           
-           if (i === this.tokens.length-1){
-               result = result + n.toString();
-           } else {
-               result = result + n.toString() + '| \n';
-           }
-	};
+           var n = this.tokens[i];
+           i === this.tokens.length-1 ? result += n.toString() : result += n.toString() + '| \n';
+	}
 	console.log("result: [%d] \n [%s]", this.tokens.length, result);
 	return result;
-        
 }
 
