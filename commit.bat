@@ -6,15 +6,14 @@ git add .
 
 set /p str=Input description:
 echo description: "%str%"
-
 git commit -m "%str%"
 git status
+
+echo  ==================== git cconfig ==========================
 git config --list
 
 git remote add origin https://github.com/janghunduck/jsparser.git
 git pull origin master
 git push origin master
-
-
 
 pause
