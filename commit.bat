@@ -1,8 +1,13 @@
+@echo off
 set path=C:\Program Files\Git\bin
 
 
 git add .
-git commit -m "jsparser"
+
+set /p str=Input description:
+echo description: "%str%"
+
+git commit -m "%str%"
 git status
 git config --list
 

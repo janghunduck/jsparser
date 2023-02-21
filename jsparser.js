@@ -171,7 +171,7 @@ var jsparser = function (script, level, isShowComment) {
                          //if (this.braceCharExist()){
                              //var brace = this.getbracepart('{','}');
                              var brace = this.lines.substr(0, this.getBraceEndCount('{', '}'));
-                             console.log("[Main brace]=[%s]", brace);
+                             //console.log("[Main brace]=[%s]", brace);
                              this.tokenarray.push(brace);                  // 모든 세부사항은 배열의 끝에 넣는다 여기서는 추적하지 않는다.
                              this.lines = this.lines.substring (brace.length-1);
                          //} else {
@@ -219,8 +219,8 @@ var jsparser = function (script, level, isShowComment) {
                          if (this.showComment) {
                              this.insertcomment(this.nextchar);
                          } else {
-                             var idx = this.lines.indexOf('\n');
-                             this.lines = this.lines.substring(idx-1);
+                             this.skipcomment(this.nextchar);
+
                          }
                          this.skiptoken();
                          break;
@@ -414,6 +414,23 @@ jsparser.prototype.insertcomment = function (char) {
     
     /* lineNumber 재설정 * 주석은 여러줄일 수 있으니 \n 를 count 해서 더해준다. */
     if (char === '*') {
+        var count = charcount(comment, '\n');
+        count !== -1 ? this.linenumber = this.linenumber + count : this.linenumber = this.linenumber;
+    }
+}
+
+jsparser.prototype.skipcomment = function (nextchar) {
+    var idx = 0;
+    if (nextchar === '/'){
+        idx = this.lines.indexOf('\n');
+    } else if (nextchar === '*'){
+        idx = this.lines.indexOf('*/') + '*/'.length + 1;
+    }
+    var comment = this.lines.substr(0, idx);
+    this.lines = this.lines.substring(idx-1);
+    
+    /* lineNumber 재설정 * 주석은 여러줄일 수 있으니 \n 를 count 해서 더해준다. */
+    if (nextchar === '*') {
         var count = charcount(comment, '\n');
         count !== -1 ? this.linenumber = this.linenumber + count : this.linenumber = this.linenumber;
     }

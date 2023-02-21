@@ -37,8 +37,8 @@ function updateStartupStageProgress (curItems, totalItems) {
 }
 
 function finishStartupLoading () {
-    $("#warning-start-container").removeAttr("hidden");
-    $("#warning-load-container").hide();
+    $('#warning-start-container').removeAttr('hidden');
+    $('#warning-load-container').hide();
 }
 
 /**
@@ -47,7 +47,7 @@ function finishStartupLoading () {
 function TitleClothingSelectionIcon (clothing) {
     this.clothing = clothing;
     $(this.elem = clothing.createSelectionElement())
-        .addClass("title-content-button").click(this.onClick.bind(this))
+        .addClass('title-content-button').click(this.onClick.bind(this))
         .on('touchstart', function() {
             $(this.elem).tooltip('show');
         }.bind(this)).tooltip({
@@ -61,7 +61,7 @@ TitleClothingSelectionIcon.prototype.visible = function () {
         return true;
     }
 
-    if (this.clothing.applicable_genders !== "all" && humanPlayer.gender !== this.clothing.applicable_genders) {
+    if (this.clothing.applicable_genders !== 'all' && humanPlayer.gender !== this.clothing.applicable_genders) {
         return false;
     }
 
@@ -73,12 +73,12 @@ TitleClothingSelectionIcon.prototype.visible = function () {
 }
 
 TitleClothingSelectionIcon.prototype.update = function () {
-    $(this.elem).removeClass("locked selected");
+    $(this.elem).removeClass('locked selected');
     if (!this.clothing.isAvailable()) {
-        $(this.elem).addClass("locked");
+        $(this.elem).addClass('locked');
     }
     if (this.clothing.isSelected()) {
-        $(this.elem).addClass("selected");
+        $(this.elem).addClass('selected');
     }
 }
 
@@ -94,11 +94,11 @@ function setupTitleClothing () {
     var prevScroll = 0;
     $('#title-clothing-container').on('scroll', function() {
         if (Math.abs(this.scrollTop - prevScroll) > this.clientHeight / 4) {
-            $("#title-clothing-container .player-clothing-select").tooltip('hide');
+            $('#title-clothing-container .player-clothing-select').tooltip('hide');
             prevScroll = this.scrollTop;
         }
     }).on('show.bs.tooltip', function(ev) {
-        $("#title-clothing-container .player-clothing-select").not(ev.target).tooltip('hide');
+        $('#title-clothing-container .player-clothing-select').not(ev.target).tooltip('hide');
         prevScroll = this.scrollTop;
     });
 
@@ -148,8 +148,8 @@ $('.title-gender-button').on('click', function(ev) {
 });
 
 function createClothingSeparator () {
-    var separator = document.createElement("hr");
-    separator.className = "clothing-separator";
+    var separator = document.createElement('hr');
+    separator.className = 'clothing-separator';
     return separator;
 }
 
@@ -188,20 +188,20 @@ function updateTitleScreen () {
         selector.update();
     });
 
-    $("#title-clothing-container").empty();
+    $('#title-clothing-container').empty();
 
     if (availableSelectors.length > 0) {
-        $("#title-clothing-container").append(availableSelectors.map(function (s) {
+        $('#title-clothing-container').append(availableSelectors.map(function (s) {
             return s.elem;
         })).append(createClothingSeparator());
     }
 
-    $("#title-clothing-container").append(defaultSelectors.map(function (s) {
+    $('#title-clothing-container').append(defaultSelectors.map(function (s) {
         return s.elem;
     }));
 
     if (lockedSelectors.length > 0) {
-        $("#title-clothing-container").append(createClothingSeparator()).append(
+        $('#title-clothing-container').append(createClothingSeparator()).append(
             lockedSelectors.map(function (s) {
                 return s.elem;
             })
@@ -260,11 +260,11 @@ function validateTitleScreen () {
     /* determine the player's name */
     var playerName = '';
 
-    if ($nameField.val() != "") {
+    if ($nameField.val() != '') {
         playerName = $nameField.val();
-    } else if (humanPlayer.gender == "male") {
-        playerName = "Mister";
-    } else if (humanPlayer.gender == "female") {
+    } else if (humanPlayer.gender == 'male') {
+        playerName = 'Mister';
+    } else if (humanPlayer.gender == 'female') {
         playerName = 'Miss';
     }
 
@@ -279,7 +279,7 @@ function validateTitleScreen () {
 
     /* ensure the player is wearing enough clothing */
     if (clothingItems.length > 8) {
-        $warningLabel.html("You cannot wear more than 8 articles of clothing. Cheater.");
+        $warningLabel.html('You cannot wear more than 8 articles of clothing. Cheater.');
         return;
     }
 
@@ -294,7 +294,7 @@ function validateTitleScreen () {
     updateAllBehaviours(null, null, SELECTED);
     updateSelectionVisuals();
 
-    Sentry.setTag("screen", "select-main");
+    Sentry.setTag('screen', 'select-main');
     screenTransition($titleScreen, $selectScreen);
 
     updateAnnouncementDropdown();
@@ -316,10 +316,10 @@ function validateTitleScreen () {
 function wearClothing () {
     var position = [[], [], []];
     var typeIdx = {
-        "important": 0,
-        "major": 1,
-        "minor": 2,
-        "extra": 3,
+        'important': 0,
+        'major': 1,
+        'minor': 2,
+        'extra': 3,
     };
 
     save.selectedClothing().sort(function (a, b) {
@@ -366,18 +366,18 @@ function wearClothing () {
  * Randomly selects two characters for the title images.
  ************************************************************/
 function selectTitleCandy() {
-    console.log("Selecting Candy...");
+    console.log('Selecting Candy...');
     var candy1 = CANDY_LIST[getRandomNumber(0, CANDY_LIST.length)];
     var candy2 = CANDY_LIST[getRandomNumber(0, CANDY_LIST.length)];
 
 
 
-    while (candy1.slice(0, candy1.lastIndexOf("/")) == candy2.slice(0, candy2.lastIndexOf("/"))) {
+    while (candy1.slice(0, candy1.lastIndexOf('/')) == candy2.slice(0, candy2.lastIndexOf('/'))) {
         candy2 = CANDY_LIST[getRandomNumber(0, CANDY_LIST.length)];
     }
 
-    $titleCandy[0].attr("src", "opponents/" + candy1);
-    $titleCandy[1].attr("src", "opponents/" + candy2);
+    $titleCandy[0].attr('src', 'opponents/' + candy1);
+    $titleCandy[1].attr('src', 'opponents/' + candy2);
 }
 
 /************************************************************
@@ -390,20 +390,5 @@ function updateClothingCount(){
 	$warningLabel.html(`Select from 0 to 8 articles. Wear whatever you want. (${clothingCount.length}/8)`);
 	return;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 </script>

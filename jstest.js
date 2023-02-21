@@ -292,7 +292,38 @@ ssa=
 " </script> \n" ;
 
 
-
+ssa=
+" <script> \n" +
+" /************************************************************ \n" +
+"  * Randomly selects two characters for the title images. \n" +
+"  ************************************************************/ \n" +
+" function selectTitleCandy() { \n" +
+"     console.log('Selecting Candy...'); \n" +
+"     var candy1 = CANDY_LIST[getRandomNumber(0, CANDY_LIST.length)]; \n" +
+"     var candy2 = CANDY_LIST[getRandomNumber(0, CANDY_LIST.length)]; \n" +
+"  \n" +
+"  \n" +
+"  \n" +
+"     while (candy1.slice(0, candy1.lastIndexOf('/')) == candy2.slice(0, candy2.lastIndexOf('/'))) { \n" +
+"         candy2 = CANDY_LIST[getRandomNumber(0, CANDY_LIST.length)]; \n" +
+"     } \n" +
+"  \n" +
+"     $titleCandy[0].attr('src', 'opponents/' + candy1); \n" +
+"     $titleCandy[1].attr('src', 'opponents/' + candy2); \n" +
+" } \n" +
+"  \n" +
+" /************************************************************ \n" +
+"  * Update the warning text to say how many items of clothing are being worn. \n" +
+"  ************************************************************/ \n" +
+" function updateClothingCount(){ \n" +
+" 	/* the amount of clothing being worn */ \n" +
+" 	var clothingCount = save.selectedClothing(); \n" +
+"  \n" +
+" 	$warningLabel.html(`Select from 0 to 8 articles. Wear whatever you want. (${clothingCount.length}/8)`); \n" +
+" 	return; \n" +
+" } \n" +
+"  \n" +
+" </script> \n" ;
 
 
 
