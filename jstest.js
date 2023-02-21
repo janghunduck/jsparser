@@ -146,6 +146,19 @@ ssa=
 
 
 
+ssa=
+" <script> \n" +
+" var opt = { 'aa': {  values:  [ {}, {}, {} ]      }}; \n" +
+" </script> \n" ;
+
+ssa=
+" <script> \n" +
+" var opt = { {   {}, {}, {}, {}, {}            } } \n" +
+"  \n" +
+" </script> \n" ;
+
+
+
 ssa =
 " <script> \n" +
 "  \n" +
@@ -163,16 +176,156 @@ ssa =
 
 
 
-ssa=
+ssa =
 " <script> \n" +
-" var opt = { 'aa': {  values:  [ {}, {}, {} ]      }}; \n" +
+" var playerTagOptions = { \n" +
+"     'sexual_orientation': { \n" +
+"         values: [ \n" +
+"             { value: 'straight' }, \n" +
+"             { value: 'bi-curious' }, \n" +
+"             { value: 'bisexual' }, \n" +
+"             { value: 'reverse_bi-curious', gender: 'male', text: 'Male-leaning bi-curious ' }, \n" +
+"             { value: 'reverse_bi-curious', gender: 'female', text: 'Female-leaning bi-curious' }, \n" +
+"             { value: 'gay', gender: 'male' }, \n" +
+"             { value: 'lesbian', gender: 'female' }, \n" +
+"         ] \n" +
+"     } \n" +
+" }; \n" +
+"  \n" +
+" </script> \n" ;
+
+
+ssa =
+" <script> \n" +
+"  \n" +
+" var playerTagOptions = { \n" +
+"     'hair_color': { \n" +
+"         values: [ \n" +
+"             { value: 'black_hair' }, { value: 'white_hair' }, \n" +
+"             { value: 'brunette' }, { value: 'ginger' }, { value: 'blonde' }, \n" +
+"             { value: 'green_hair' }, \n" +
+"             { value: 'blue_hair' }, \n" +
+"             { value: 'purple_hair' }, \n" +
+"             { value: 'pink_hair' }, \n" +
+"         ], \n" +
+"     }, \n" +
+"     'eye_color': { \n" +
+"         values: [ \n" +
+"             { value: 'dark_eyes' }, { value: 'pale_eyes' }, \n" +
+"             { value: 'red_eyes' }, { value: 'amber_eyes' }, \n" +
+"             { value: 'green_eyes' }, { value: 'blue_eyes' }, \n" +
+"             { value: 'violet_eyes' }, \n" +
+"         ], \n" +
+"     }, \n" +
+"     'skin_color': { \n" +
+"         type: 'range', \n" +
+"         values: [ \n" +
+"             { value: 'pale-skinned', from: 0, to: 25 }, \n" +
+"             { value: 'fair-skinned', from: 25, to: 50 }, \n" +
+"             { value: 'olive-skinned', from: 50, to: 75 }, \n" +
+"             { value: 'dark-skinned', from: 75, to: 100 }, \n" +
+"         ], \n" +
+"     }, \n" +
+"     'hair_length': { \n" +
+"         values: [ \n" +
+"             { value: 'bald', text: 'Bald - No Hair'}, \n" +
+"             { value: 'short_hair', text: 'Short Hair - Does Not Pass Jawline'}, \n" +
+"             { value: 'medium_hair', text: 'Medium Hair - Reaches Between Jawline and Shoulders'}, \n" +
+"             { value: 'long_hair', text: 'Long Hair - Reaches Beyond Shoulders'}, \n" +
+"             { value: 'very_long_hair', text: 'Very Long Hair - Reaches the Thighs or Beyond'}, \n" +
+"         ], \n" +
+"     }, \n" +
+"     'physical_build': { \n" +
+"         values: [ \n" +
+"             { value: 'skinny' }, \n" +
+"             { value: 'chubby' }, \n" +
+"             { value: 'curvy', gender: 'female' }, \n" +
+"             { value: 'athletic' }, \n" +
+"             { value: 'muscular' }, \n" +
+"         ], \n" +
+"     }, \n" +
+"     'height': { \n" +
+"         values: [ \n" +
+"             { value: 'tall' }, \n" +
+"             { value: 'average' }, \n" +
+"             { value: 'short' }, \n" +
+"         ], \n" +
+"     }, \n" +
+"     'pubic_hair_style': { \n" +
+"         values: [ \n" +
+"             { value: 'shaved' }, \n" +
+"             { value: 'trimmed' }, \n" +
+"             { value: 'hairy' }, \n" +
+"         ], \n" +
+"     }, \n" +
+"     'circumcision': { \n" +
+"         gender: 'male', \n" +
+"         values: [ \n" +
+"             { value: 'circumcised' }, \n" +
+"             { value: 'uncircumcised' } \n" +
+"         ], \n" +
+"     }, \n" +
+"     'sexual_orientation': { \n" +
+"         values: [ \n" +
+"             { value: 'straight' }, \n" +
+"             { value: 'bi-curious' }, \n" +
+"             { value: 'bisexual' }, \n" +
+"             { value: 'reverse_bi-curious', gender: 'male', text: 'Male-leaning bi-curious ' }, \n" +
+"             { value: 'reverse_bi-curious', gender: 'female', text: 'Female-leaning bi-curious' }, \n" +
+"             { value: 'gay', gender: 'male' }, \n" +
+"             { value: 'lesbian', gender: 'female' }, \n" +
+"         ] \n" +
+"     } \n" +
+" }; \n" +
+"  \n" +
+"  \n" +
+"  \n" +
+"  \n" +
 " </script> \n" ;
 
 ssa=
 " <script> \n" +
-" var opt = { {   {}, {}, {}, {}, {}            } } \n" +
+" DEFAULT_CLOTHING_OPTIONS.forEach(function (clothing) { \n" +
+"     PLAYER_CLOTHING_OPTIONS[clothing.id] = clothing; \n" +
+" }); \n" +
 "  \n" +
 " </script> \n" ;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

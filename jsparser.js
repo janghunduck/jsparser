@@ -1,8 +1,16 @@
+/*
+filename : jsparser.js
+author : yoobi
+project : chartflow
+company :
 
+*/
 
-var jsparser = function (script, isShowComment) {
+/* level : 처음 <script>...</script>, js 파일의 스크립트가 들어올 경우 0, Brace Part가 들어올 경우 1  */
+var jsparser = function (script, level, isShowComment) {
 
          this.lines          = script;
+         this.level          = level;
          this.showComment = isShowComment;
          this.backupline     = '';
          this.nextline       = '';
@@ -161,9 +169,8 @@ var jsparser = function (script, isShowComment) {
                           }
                      } else {                                                      // ok! object, function
                          //if (this.braceCharExist()){
-                             var brace = this.getbracepart('{','}');
-                             //var brace = this.lines.substr(0, this.getBraceEndCount());
-                             console.log("%s",this.lines.substr(0, this.getBraceEndCount()));
+                             //var brace = this.getbracepart('{','}');
+                             var brace = this.lines.substr(0, this.getBraceEndCount('{', '}'));
                              console.log("[Main brace]=[%s]", brace);
                              this.tokenarray.push(brace);                  // 모든 세부사항은 배열의 끝에 넣는다 여기서는 추적하지 않는다.
                              this.lines = this.lines.substring (brace.length-1);
@@ -200,7 +207,8 @@ var jsparser = function (script, isShowComment) {
                      this.skiptoken(); 
                      break;
                  case a === '[':                                                        // array
-                     var brace = this.getbracepart('[',']');
+                     //var brace = this.getbracepart('[',']');
+                     var brace = this.lines.substr(0, this.getBraceEndCount('[', ']'));
                      this.tokenarray.push(brace);
                      this.lines = this.lines.substring (brace.length-1);
                      
@@ -282,14 +290,15 @@ jsparser.prototype.getmatchtag = function(){
 }
 
 // object or function 의 { {} } 와 같이 중첩 brace를 count 해서 object의 끝과 함께 Object 전체 스트링을 뽑는다.
-jsparser.prototype.getBraceEndCount = function(){
+// 아래것으로 대체
+jsparser.prototype.getBraceEndCount___ = function(startchar, endchar){
     var depth = 0;
     var count = function (str) {
             for (var i=0; i<str.length; i++){
                 var char = str.charAt(i);
-                if (char === '{'){
+                if (char === startchar){
                     depth++;
-                } else if(char === '}'){
+                } else if(char === endchar){
                     depth--;
                     if (depth === 0){
                         return i+1;
@@ -300,7 +309,23 @@ jsparser.prototype.getBraceEndCount = function(){
     return count(this.lines);
 }
 
+jsparser.prototype.getBraceEndCount = function(startchar, endchar){
+    var depth = 0;
+    for (var i=0; i<this.lines.length; i++){
+        var char = this.lines.charAt(i);
+        if (char === startchar){
+            depth++;
+        } else if(char === endchar){
+            depth--;
+            if (depth === 0){
+                return i+1;
+            }
+        }
+    }
+}
+
 /* s.match(/\{(.*)\}/s) 를 대체한다. 에러가 있어서 getBraceEndCount 로 대체함. */
+// 추후 지울것
 jsparser.prototype.getbracepart = function(startc, endc){
     //var s = "ab = function() { alert('ab'); {  a  { c } b} } aaa{e}";
     var pos = 0;
@@ -342,6 +367,7 @@ const person = {
 jsparser.prototype.objectbraceparser = function ( bracestr ) {
     var a = bracestr.split(',');
     var tmparr = [];
+    tmparr.push(this.level);
     tmparr.push(this.linenumber);
     tmparr.push('tp_vo_struture');
     
@@ -382,6 +408,7 @@ jsparser.prototype.insertcomment = function (char) {
     arr.push(comment);
     arr.unshift('tp_comment');
     arr.unshift(this.linenumber);
+    arr.unshift(this.level);
     this.tokens.push(arr);
     this.lines = this.lines.substring(idx-1);
     
@@ -544,10 +571,14 @@ jsparser.prototype.inserttoken = function() {
         // tp_gf  : general function  ex: function ab()
         /* ----------------------------------------------------- */
         if ((this.reconizegf()) &&
-             (!this.recognizejq())){
+            (!this.recognizejq())){
         
-            var count = this.braceExistAndLf('function');
-            this.tokenarray.unshift('tp_gf');
+            var count = this.braceExistAndLf('function');   // \n 의수 count
+            if (this.backupline.indexOf('forEach') !== -1){
+                this.tokenarray.unshift('tp_gf_foreach');
+            } else {
+                this.tokenarray.unshift('tp_gf');
+            }
             
         /* ----------------------------------------------------- */
         // tp_vf  : var function  ex: var ab = function(){}
@@ -766,6 +797,7 @@ jsparser.prototype.inserttoken = function() {
         /* Last Process 이건 비용이 많이든다.? */
         if ((this.findArrformSkipkeywords() === -1)){
             this.tokenarray.unshift(this.linenumber);
+            this.tokenarray.unshift(this.level);
             count !== -1 ? this.linenumber = this.linenumber + count : this.linenumber = this.linenumber;
             this.tokens.push(this.tokenarray);
         } else {

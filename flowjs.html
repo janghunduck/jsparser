@@ -32,7 +32,7 @@ console.log("=>[script: ]", PP.getInlineScript());
 var scripts = PP.getInlineScript();
 for(var i=0; i < scripts.length; i++){
    //console.log("--------------------------------------------\n It's script in html [%d][%s]", i,scripts[i]);
-   var pj = new jsparser(String(scripts[i]), false);
+   var pj = new jsparser(String(scripts[i]), 0, false);
    pj.parserjs();
    pj.tostringtokens();
 }
