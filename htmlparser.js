@@ -7,7 +7,7 @@ company :
 */
 
 var Parhtml = function (html, targetfile) {
-
+        // this = {};
         //if (!validHTML(html)) { alert('Invalid HTML, HTML 문서 형식이 아닙니다. ') }  // Html validation check
 
         this.orglines       = '';    // source
@@ -189,7 +189,7 @@ var Parhtml = function (html, targetfile) {
                     break;
 
             }
-            return true;
+            // return this;
         };
 
 }

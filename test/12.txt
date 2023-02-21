@@ -1,0 +1,119 @@
+function initialSetup () {
+    /* start by creating the human player object */
+    players[HUMAN_PLAYER] = humanPlayer = new Player('human'); //createNewPlayer("human", "", "", "", eGender.MALE, eSize.MEDIUM, eIntelligence.AVERAGE, 20, undefined, [], null);
+    humanPlayer.slot = HUMAN_PLAYER;
+    humanPlayer.resetState();
+
+    /* Generate a random session ID. */
+    sessionID = generateRandomID();
+
+    /* enable table opacity */
+    tableOpacity = 1;
+    $gameTable.css({opacity:1});
+
+    /* Load title screen info first, since that's fast and synchronous */
+    selectTitleCandy();
+
+    /* Attempt to detect broken images as caused by running SPNATI from an invalid archive. */
+    detectBrokenOffline();
+
+    /* load global origin variables */
+    var origin = getReportedOrigin();
+    isLocal = origin.includes("localhost") || origin.includes("local filesystem");
+    isMainSite = origin.includes("spnati.net");
+    
+    /* Make sure that the config file is loaded before processing the
+     *  opponent list, so that includedOpponentStatuses is populated.
+     *
+     * Also ensure that the config file is loaded before initializing Sentry,
+     * which requires the commit SHA.
+     */
+    loadConfigFile().then(function () {
+        try {
+            sentryInit();
+        } catch (err) {
+            captureError(err);
+        }
+        /* Make sure that save data is loaded before updateTitleScreen(),
+         * since the latter uses selectedClothing.
+         */
+        save.loadLocalStorage();
+    }).then(loadEventData).then(function () {
+        return Promise.all([
+            loadBackgrounds(), loadCustomDecks()
+        ]);
+    }).then(function () {
+        save.load();
+        return loadVersionInfo();
+    }).then(metadataIndex.loadIndex.bind(metadataIndex)).then(loadSelectScreen).then(loadAllCollectibles).then(function () {
+        setupTitleClothing();
+        finishStartupLoading();
+
+        if (!EPILOGUES_ENABLED && !COLLECTIBLES_ENABLED) {
+            $('.title-gallery-edge').css('visibility', 'hidden');
+        }
+        updateTitleScreen();
+        updateAnnouncementDropdown();
+    });
+
+    Sentry.setTag("screen", "warning");
+
+    /* show the title screen */
+    $titleScreen.show();
+    $('.warning-container').focus();
+    autoResizeFont();
+    /* set up future resizing */
+    window.onresize = autoResizeFont;
+
+    /* Construct a CSS rule for every combination of arrow direction, screen, and pseudo-element */
+    bubbleArrowOffsetRules = [];
+    var targetCssSheet = document.getElementById("spniStyleSheet").sheet;
+
+    for (var i = 1; i <= 4; i++) {
+        var pair = [];
+        [["up", "down"], ["left", "right"]].forEach(function(p) {
+            var index = targetCssSheet.cssRules.length;
+            var rule = p.map(function(d) {
+                return ["select", "game"].map(function(s) {
+                    return '#'+s+'-bubble-'+i+'.arrow-'+d+'::before';
+                }).join(', ');
+            }).join(', ') + ' {}';
+            targetCssSheet.insertRule(rule, index);
+            pair.push(targetCssSheet.cssRules[index]);
+        });
+        bubbleArrowOffsetRules.push(pair);
+    }
+    $(document).keydown(function(ev) {
+        if (ev.key == "Tab") {  // Tab
+            $("body").addClass('focus-indicators-enabled');
+        }
+    });
+    $(document).keyup(function(ev) {
+        if (ev?.key?.toLowerCase() == 'f' && !ev.shiftKey
+            && !$(document.activeElement).is('input, select, textarea')) {
+            toggleFullscreen();
+        } else if (ev.key == "F1") {
+            showHelpModal();
+            ev.preventDefault();
+        } else if (ev.key == "Escape") {
+            $("body").removeClass('focus-indicators-enabled');
+        }
+    });
+    $(document).mousedown(function(ev) {
+        $("body").removeClass('focus-indicators-enabled');
+    });
+    $(window).on('beforeunload', function() {
+        if (inGame) {
+            event.preventDefault();
+            event.returnValue = '';
+        }
+    });
+
+    window.addEventListener("unload", function () {
+        if ((document.visibilityState === "hidden") && inGame && !gameOver) {
+            recordInterruptedGameEvent(true);
+        }
+    });
+
+    $('[data-toggle="tooltip"]').tooltip({ delay: { show: 200 } });
+}

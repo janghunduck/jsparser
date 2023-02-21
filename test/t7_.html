@@ -1,0 +1,409 @@
+<script>
+var playerTagSelections = {};
+
+// Order matters here.
+var DEFAULT_CLOTHING_OPTIONS = [];
+
+var PLAYER_CLOTHING_OPTIONS = {};
+DEFAULT_CLOTHING_OPTIONS.forEach(function (clothing) {
+    PLAYER_CLOTHING_OPTIONS[clothing.id] = clothing;
+});
+
+var titleClothingSelectors = [];
+
+ /* Keep in sync with total number of calls to beginStartupStage */
+var totalLoadStages = 6;
+var curLoadStage = -1;
+
+
+
+function beginStartupStage (label) {
+    curLoadStage++;
+    $gameLoadLabel.text(label);
+    updateStartupStageProgress(0, 1);
+}
+
+function updateStartupStageProgress (curItems, totalItems) {
+    /*
+     * Add the overall loading progress for all prior stages (curLoadStage / totalLoadStages)
+     * to a fraction of (1 / totalLoadStages).
+     * (1 / totalLoadStages) * (curItems / totalItems) == curItems / (totalItems * totalLoadStages)
+     */
+    var progress = Math.floor(100 * (
+        (curLoadStage / totalLoadStages) +
+        (curItems / (totalItems * totalLoadStages))
+    ));
+    $gameLoadProgress.text(progress.toString(10));
+}
+
+function finishStartupLoading () {
+    $("#warning-start-container").removeAttr("hidden");
+    $("#warning-load-container").hide();
+}
+
+/**
+ * @param {PlayerClothing} clothing
+ */
+function TitleClothingSelectionIcon (clothing) {
+    this.clothing = clothing;
+    $(this.elem = clothing.createSelectionElement())
+        .addClass("title-content-button").click(this.onClick.bind(this))
+        .on('touchstart', function() {
+            $(this.elem).tooltip('show');
+        }.bind(this)).tooltip({
+            delay: 50,
+            title: function() { return clothing.tooltip(); }
+        });
+}
+
+TitleClothingSelectionIcon.prototype.visible = function () {
+    if (this.clothing.isAvailable()) {
+        return true;
+    }
+
+    if (this.clothing.applicable_genders !== "all" && humanPlayer.gender !== this.clothing.applicable_genders) {
+        return false;
+    }
+
+    if (this.clothing.collectible) {
+        return !this.clothing.collectible.hidden;
+    }
+
+    return false;
+}
+
+TitleClothingSelectionIcon.prototype.update = function () {
+    $(this.elem).removeClass("locked selected");
+    if (!this.clothing.isAvailable()) {
+        $(this.elem).addClass("locked");
+    }
+    if (this.clothing.isSelected()) {
+        $(this.elem).addClass("selected");
+    }
+}
+
+TitleClothingSelectionIcon.prototype.onClick = function () {
+    if (this.clothing.isAvailable()) {
+        this.clothing.setSelected(!this.clothing.isSelected());
+        this.update();
+        updateClothingCount();
+    }
+}
+
+function setupTitleClothing () {
+    var prevScroll = 0;
+    $('#title-clothing-container').on('scroll', function() {
+        if (Math.abs(this.scrollTop - prevScroll) > this.clientHeight / 4) {
+            $("#title-clothing-container .player-clothing-select").tooltip('hide');
+            prevScroll = this.scrollTop;
+        }
+    }).on('show.bs.tooltip', function(ev) {
+        $("#title-clothing-container .player-clothing-select").not(ev.target).tooltip('hide');
+        prevScroll = this.scrollTop;
+    });
+
+    loadedOpponents.forEach(function (opp) {
+        if (!opp.has_collectibles || !opp.collectibles) return;
+
+        opp.collectibles.forEach(function (collectible) {
+            var clothing = collectible.clothing;
+            if (
+                (!clothing || !PLAYER_CLOTHING_OPTIONS[clothing.id]) ||
+                (collectible.status && !includedOpponentStatuses[collectible.status])
+            ) {
+                return;
+            }
+
+            var selector = new TitleClothingSelectionIcon(clothing);
+            titleClothingSelectors.push(selector);
+        });
+    });
+
+    DEFAULT_CLOTHING_OPTIONS.forEach(function (clothing) {
+        var selector = new TitleClothingSelectionIcon(clothing);
+        titleClothingSelectors.push(selector);
+    });
+
+    updateClothingCount();
+}
+
+/**********************************************************************
+ *****                   Interaction Functions                    *****
+ **********************************************************************/
+
+/************************************************************
+ * The player clicked on one of the gender icons on the title
+ * screen, or this was called by an internal source.
+ ************************************************************/
+function changePlayerGender (gender) {
+    save.savePlayer();
+    humanPlayer.gender = gender;
+    save.loadPlayer();
+    updateTitleScreen();
+    updateSelectionVisuals(); // To update epilogue availability status
+}
+
+$('.title-gender-button').on('click', function(ev) {
+    changePlayerGender($(ev.target).data('gender'));
+});
+
+function createClothingSeparator () {
+    var separator = document.createElement("hr");
+    separator.className = "clothing-separator";
+    return separator;
+}
+
+/************************************************************
+ * Updates the gender dependent controls on the title screen.
+ ************************************************************/
+function updateTitleScreen () {
+    $titleContainer.removeClass('male female').addClass(humanPlayer.gender);
+    $playerTagsModal.removeClass('male female').addClass(humanPlayer.gender);
+    $('.title-gender-button').each(function() {
+        $(this).toggleClass('selected', $(this).data('gender') == humanPlayer.gender);
+    });
+
+    var availableSelectors = [];
+    var defaultSelectors = [];
+    var lockedSelectors = [];
+
+    titleClothingSelectors.forEach(function (selector) {
+        var clothing = selector.clothing;
+        $(selector.elem).detach();
+
+        if (!selector.visible()) {
+            return;
+        }
+
+        if (selector.clothing.collectible) {
+            if (selector.clothing.isAvailable()) {
+                availableSelectors.push(selector);
+            } else {
+                lockedSelectors.push(selector);
+            }
+        } else {
+            defaultSelectors.push(selector);
+        }
+
+        selector.update();
+    });
+
+    $("#title-clothing-container").empty();
+
+    if (availableSelectors.length > 0) {
+        $("#title-clothing-container").append(availableSelectors.map(function (s) {
+            return s.elem;
+        })).append(createClothingSeparator());
+    }
+
+    $("#title-clothing-container").append(defaultSelectors.map(function (s) {
+        return s.elem;
+    }));
+
+    if (lockedSelectors.length > 0) {
+        $("#title-clothing-container").append(createClothingSeparator()).append(
+            lockedSelectors.map(function (s) {
+                return s.elem;
+            })
+        );
+    }
+    updateClothingCount();
+}
+
+/************************************************************
+ * The player clicked on one of the size icons on the title
+ * screen, or this was called by an internal source.
+ ************************************************************/
+function changePlayerSize (size) {
+    humanPlayer.size = size;
+    $sizeBlocks[humanPlayer.gender].find('.title-size-button').each(function() {
+        $(this).toggleClass('selected', $(this).data('size') == size);
+    });
+}
+
+$('.title-size-block').on('click', '.title-size-button', function(ev) {
+    changePlayerSize($(ev.target).data('size'));
+});
+
+/**************************************************************
+ * Add tags to the human player based on the selections in the tag
+ * dialog and the size.
+ **************************************************************/
+function setPlayerTags () {
+    var playerTagList = ['human', 'human_' + humanPlayer.gender,
+                         humanPlayer.size + (humanPlayer.gender == 'male' ? '_penis' : '_breasts')];
+
+    for (category in playerTagSelections) {
+        var sel = playerTagSelections[category];
+        if (!(category in playerTagOptions)) continue;
+        playerTagOptions[category].values.some(function (choice) {
+            if (playerTagOptions[category].type == 'range') {
+                if (sel > choice.to) return false;
+            } else {
+                if (sel != choice.value) return false;
+            }
+            playerTagList.push(choice.value);
+            return true;
+        });
+    }
+    /* applies tags to the player*/
+    console.log(playerTagList);
+    humanPlayer.baseTags = playerTagList.map(canonicalizeTag);
+    humanPlayer.updateTags();
+}
+
+/************************************************************
+ * The player clicked on the advance button on the title
+ * screen.
+ ************************************************************/
+function validateTitleScreen () {
+    /* determine the player's name */
+    var playerName = '';
+
+    if ($nameField.val() != "") {
+        playerName = $nameField.val();
+    } else if (humanPlayer.gender == "male") {
+        playerName = "Mister";
+    } else if (humanPlayer.gender == "female") {
+        playerName = 'Miss';
+    }
+
+    humanPlayer.first = playerName;
+    humanPlayer.label = playerName;
+
+    $gameLabels[HUMAN_PLAYER].text(humanPlayer.label);
+
+    /* count clothing */
+    var clothingItems = save.selectedClothing();
+    console.log(clothingItems.length);
+
+    /* ensure the player is wearing enough clothing */
+    if (clothingItems.length > 8) {
+        $warningLabel.html("You cannot wear more than 8 articles of clothing. Cheater.");
+        return;
+    }
+
+    /* dress the player */
+    wearClothing();
+    setPlayerTags();
+
+    save.savePlayer();
+    console.log(players[0]);
+
+    setLocalDayOrNight();
+    updateAllBehaviours(null, null, SELECTED);
+    updateSelectionVisuals();
+
+    Sentry.setTag("screen", "select-main");
+    screenTransition($titleScreen, $selectScreen);
+
+    updateAnnouncementDropdown();
+    showAnnouncements();
+
+    if (curResortEvent && !curResortEvent.resort.checkCharacterThreshold()) {
+        curResortEvent.resort.setFlag(false);
+    }
+}
+
+/**********************************************************************
+ *****                    Additional Functions                    *****
+ **********************************************************************/
+
+/************************************************************
+ * Takes all of the clothing selected by the player and adds it,
+ * in a particular order, to the list of clothing they are wearing.
+ ************************************************************/
+function wearClothing () {
+    var position = [[], [], []];
+    var typeIdx = {
+        "important": 0,
+        "major": 1,
+        "minor": 2,
+        "extra": 3,
+    };
+
+    save.selectedClothing().sort(function (a, b) {
+        return typeIdx[a.type] - typeIdx[b.type];
+    }).forEach(function (clothing) {
+        if (clothing.position == UPPER_ARTICLE) {
+            position[0].push(clothing);
+        } else if (clothing.position == LOWER_ARTICLE) {
+            position[1].push(clothing);
+        } else {
+            position[2].push(clothing);
+        }
+    });
+
+    /* clear player clothing array */
+    humanPlayer.clothing = [];
+
+    /* wear the clothing is sorted order */
+    for (var i = 0; i < position[0].length || i < position[1].length; i++) {
+        /* wear a lower article, if any remain */
+        if (i < position[1].length) {
+            humanPlayer.clothing.push(position[1][i]);
+        }
+
+        /* wear an upper article, if any remain */
+        if (i < position[0].length) {
+            humanPlayer.clothing.push(position[0][i]);
+        }
+    }
+
+    /* wear any other clothing */
+    for (var i = 0; i < position[2].length; i++) {
+        humanPlayer.clothing.push(position[2][i]);
+    }
+
+    humanPlayer.initClothingStatus();
+
+    /* update the visuals */
+    displayHumanPlayerClothing();
+}
+
+
+/************************************************************
+ * Randomly selects two characters for the title images.
+ ************************************************************/
+function selectTitleCandy() {
+    console.log("Selecting Candy...");
+    var candy1 = CANDY_LIST[getRandomNumber(0, CANDY_LIST.length)];
+    var candy2 = CANDY_LIST[getRandomNumber(0, CANDY_LIST.length)];
+
+
+
+    while (candy1.slice(0, candy1.lastIndexOf("/")) == candy2.slice(0, candy2.lastIndexOf("/"))) {
+        candy2 = CANDY_LIST[getRandomNumber(0, CANDY_LIST.length)];
+    }
+
+    $titleCandy[0].attr("src", "opponents/" + candy1);
+    $titleCandy[1].attr("src", "opponents/" + candy2);
+}
+
+/************************************************************
+ * Update the warning text to say how many items of clothing are being worn.
+ ************************************************************/
+function updateClothingCount(){
+	/* the amount of clothing being worn */
+	var clothingCount = save.selectedClothing();
+
+	$warningLabel.html(`Select from 0 to 8 articles. Wear whatever you want. (${clothingCount.length}/8)`);
+	return;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</script>

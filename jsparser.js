@@ -61,8 +61,8 @@ var jsparser = function (script, isShowComment) {
          //this.lines = "let ab = require('js2flowchart'); ";
          //this.lines = "$('.frame_id, #frame_class').show()";
          //this.lines = "$(window).load( game.run() )";
-         this.lines = " $titlePanels = [$('#title-panel-1'), $('#title-panel-2')]; \n";
-         this.lines = " var $titleField = $('#player-name'); \n";
+         //this.lines = " $titlePanels = [$('#title-panel-1'), $('#title-panel-2')]; \n";
+         //this.lines = " var $titleField = $('#player-name'); \n";
          //this.lines = "$(document).ready( function (){}) ";
          //this.lines = "$('#img_btn').click( function(){  } )";
          //this.lines = "try { } finally {} ";
@@ -159,14 +159,14 @@ var jsparser = function (script, isShowComment) {
                           for(var i=0;i < reqitems.length; i++){
                               this.tokenarray.push(reqitems[i]);
                           }
-                     } else {                                                  // ok! object, function
+                     } else {                                                      // ok! object, function
                          //if (this.braceCharExist()){
                              var brace = this.getbracepart('{','}');
+                             //var brace = this.lines.substr(0, this.getBraceEndCount());
+                             console.log("%s",this.lines.substr(0, this.getBraceEndCount()));
                              console.log("[Main brace]=[%s]", brace);
                              this.tokenarray.push(brace);                  // 모든 세부사항은 배열의 끝에 넣는다 여기서는 추적하지 않는다.
                              this.lines = this.lines.substring (brace.length-1);
-                             //console.log("this.lines=[%s]", this.lines);
-                             //console.log("this.lines=[%s]", this.lines.c_replaceAll('\n','0'));
                          //} else {
                          
                          //}
@@ -281,6 +281,46 @@ jsparser.prototype.getmatchtag = function(){
     }
 }
 
+// object or function 의 { {} } 와 같이 중첩 brace를 count 해서 object의 끝과 함께 Object 전체 스트링을 뽑는다.
+jsparser.prototype.getBraceEndCount = function(){
+    var depth = 0;
+    var count = function (str) {
+            for (var i=0; i<str.length; i++){
+                var char = str.charAt(i);
+                if (char === '{'){
+                    depth++;
+                } else if(char === '}'){
+                    depth--;
+                    if (depth === 0){
+                        return i+1;
+                    }
+                }
+            }
+        }
+    return count(this.lines);
+}
+
+/* s.match(/\{(.*)\}/s) 를 대체한다. 에러가 있어서 getBraceEndCount 로 대체함. */
+jsparser.prototype.getbracepart = function(startc, endc){
+    //var s = "ab = function() { alert('ab'); {  a  { c } b} } aaa{e}";
+    var pos = 0;
+
+    var closepos = this.lines.indexOf(endc);
+    var str = this.lines.substr(0, closepos);                   // { alert('ab'); {  a  { c
+    var cnt = countRepeatStr(str, startc);
+
+    var nextstr = this.lines.substr(closepos, this.lines.length - closepos);  //  } b} } aaa{e}
+
+    var foundPos = 0;
+    for(var i=0; i<cnt;i++){
+        foundPos = nextstr.indexOf(endc, pos)
+        //alert(foundPos +'   /'+ pos);
+        if(foundPos == -1) break;
+        pos = foundPos + 1;
+    }
+
+    return str + nextstr.substr(0, foundPos+1);       // } b} }
+}
 
 // 객체의 {} 부분을 파싱한다.
 // 1. 한글자식 이동하며 token화 하는 방법
@@ -326,27 +366,6 @@ jsparser.prototype.objectbraceparser = function ( bracestr ) {
 }
 
 
-/* s.match(/\{(.*)\}/s) 를 대체한다.  */
-jsparser.prototype.getbracepart = function(startc, endc){
-    //var s = "ab = function() { alert('ab'); {  a  { c } b} } aaa{e}";
-    var pos = 0;
-
-    var closepos = this.lines.indexOf(endc);
-    var str = this.lines.substr(0, closepos);                   // { alert('ab'); {  a  { c
-    var cnt = countRepeatStr(str, startc);
-
-    var nextstr = this.lines.substr(closepos, this.lines.length - closepos);  //  } b} } aaa{e}
-
-    var foundPos = 0;
-    for(var i=0; i<cnt;i++){
-        foundPos = nextstr.indexOf(endc, pos)
-        //alert(foundPos +'   /'+ pos);
-        if(foundPos == -1) break;
-        pos = foundPos + 1;
-    }
-
-    return str + nextstr.substr(0, foundPos+1);       // } b} }
-}
 
 jsparser.prototype.insertcomment = function (char) {
 

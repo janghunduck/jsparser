@@ -135,17 +135,44 @@ ssa =
 " </script> \n" ;
 
 
+ssa=
+" <script> \n" +
+" var opt = { 'aa', { \n" +
+"                       { \n" +
+"                       } \n" +
+"                   } \n" +
+"           }; \n" +
+" </script> \n" ;
 
 
 
+ssa =
+" <script> \n" +
+"  \n" +
+" var opt = { \n" +
+"     'pussy': { \n" +
+"         values: [ \n" +
+"             { value: 'orivia' }, \n" +
+"             { value: 'jena' }, \n" +
+"             { value: 'silly' }, \n" +
+"         ] \n" +
+"     } \n" +
+" }; \n" +
+"  \n" +
+" </script> \n" ;
 
 
 
+ssa=
+" <script> \n" +
+" var opt = { 'aa': {  values:  [ {}, {}, {} ]      }}; \n" +
+" </script> \n" ;
 
-
-
-
-
+ssa=
+" <script> \n" +
+" var opt = { {   {}, {}, {}, {}, {}            } } \n" +
+"  \n" +
+" </script> \n" ;
 
 
 

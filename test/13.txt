@@ -1,0 +1,55 @@
+<script>
+
+function PoseSprite(id, src, onload, pose, args) {
+    this.pose = pose;
+    this.id = id;
+    this.player = args.player;
+    this.src = src;
+    this.x = args.x || 0;
+    this.y = args.y || 0;
+    this.z = args.z || 'auto';
+    this.scalex = args.scalex || 1;
+    this.scaley = args.scaley || 1;
+    this.skewx = args.skewx || 0;
+    this.skewy = args.skewy || 0;
+    this.rotation = args.rotation || 0;
+    this.alpha = args.alpha;
+    this.pivotx = args.pivotx;
+    this.pivoty = args.pivoty;
+    this.height = args.height || 0;
+    this.width = args.width || 0;
+    this.delay = args.delay || 0;
+    this.elapsed = 0;
+    this.parentId = args.parent;
+    
+    this.vehicle = document.createElement('div');
+    this.vehicle.id = id;
+    this.pivot = document.createElement('div');
+    this.vehicle.appendChild(this.pivot);
+    
+    this.img = document.createElement('img');
+    this.img.className = "sprite";
+    this.img.onload = this.img.onerror = function() {
+        if (!this.height) this.height = this.img.naturalHeight;
+        if (!this.width) this.width = this.img.naturalWidth;
+        
+        onload(this);
+    }.bind(this);
+    this.img.src = this.prevSrc = getActualSpriteSrc(this.src, this.pose.player);
+    
+    this.pivot.appendChild(this.img);
+    
+    if (this.alpha === undefined) {
+        this.alpha = 100;
+    }
+    
+    if (this.pivotx || this.pivoty) {
+        this.pivotx = this.pivotx || "center";
+        this.pivoty = this.pivoty || "center";
+        $(this.pivot).css("transform-origin", this.pivotx + " " + this.pivoty);
+    }
+    
+    $(this.vehicle).css("z-index", this.z);
+}
+
+</script>

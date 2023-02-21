@@ -1,0 +1,122 @@
+<script>
+
+function Player (id) {
+    this.id = id;
+    this.folder = 'opponents/'+id+'/';
+    this.base_folder = 'opponents/'+id+'/';
+    this.first = '';
+    this.last = '';
+    this.labels = undefined;
+    this.folders = undefined;
+    this.size = eSize.MEDIUM;
+    this.intelligence = eIntelligence.AVERAGE;
+    this.gender = eGender.MALE;
+    this.stamina = 20;
+    this.scale = undefined;
+    this.tags = this.baseTags = [];
+    this.xml = null;
+    this.persistentMarkers = {};
+    this.exposed = { upper: false, lower: false };
+}
+
+/*******************************************************************
+ * Sets initial values of state variables used by targetStatus,
+ * targetStartingLayers etc. adccording to wardrobe.
+ *******************************************************************/
+Player.prototype.initClothingStatus = function () {
+    this.startingLayers = this.clothing.length;
+    this.exposed = { upper: true, lower: true };
+    for (var position in this.exposed) {
+        if (this.clothing.some(function(c) {
+            return (c.type == IMPORTANT_ARTICLE || c.type == MAJOR_ARTICLE)
+                && (c.position == position || c.position == FULL_ARTICLE);
+        })) {
+            this.exposed[position] = false;
+        };
+    }
+    this.numStripped = { extra: 0, minor: 0, major: 0, important: 0 };
+    this.mostlyClothed = this.decent = !(this.exposed.upper || this.exposed.lower)
+        && this.clothing.some(function(c) {
+            return c.type == MAJOR_ARTICLE
+                && [UPPER_ARTICLE, LOWER_ARTICLE, FULL_ARTICLE].indexOf(c.position) >= 0;
+        });
+}
+
+/*******************************************************************
+ * (Re)Initialize the player properties that change during a game
+ *******************************************************************/
+Player.prototype.resetState = function () {
+    this.out = this.finished = false;
+    this.outOrder = undefined;
+    this.biggestLead = 0;
+    this.forfeit = "";
+    this.forfeitLocked = false;
+    this.finishingTarget = this;
+    this.stage = this.consecutiveLosses = 0;
+    this.timeInStage = 0;
+    this.ticksInStage = 0;
+    this.markers = {};
+    this.saidDialogue = {};
+    this.hand = null;
+
+    if (this.xml !== null) {
+        /* Initialize reaction handling state. */
+        this.currentTarget = null;
+        this.currentTriggers = [];
+        this.stateCommitted = false;
+
+        this.oneShotCases = {};
+        this.oneShotStates = {};
+
+        var appearance = this.default_costume;
+        if (this.alt_costume) {
+            appearance = this.alt_costume;
+        }
+
+        this.labels = appearance.labels;
+        this.folders = appearance.folders;
+        this.baseTags = appearance.tags.slice();
+        this.labelOverridden = this.intelligenceOverridden = false;
+
+        /* The gender listed in meta.xml and behaviour.xml might differ
+         * (for example with gender-revealing characters)
+         * So assume behaviour.xml holds the 'definitive' starting gender
+         * for the character.
+         */
+        this.gender = appearance.gender;
+        this.size = appearance.size;
+
+        this.stamina = Number(this.xml.children('timer').text());
+
+        /* Clear the repeat log between games. */
+        this.repeatLog = {};
+
+        /* Load the player's wardrobe. */
+
+        /* Find and grab the wardrobe tag */
+        $wardrobe = appearance.wardrobe;
+
+        /* find and create all of their clothing */
+        var clothingArr = [];
+        $wardrobe.children('clothing').each(function () {
+            var generic = $(this).attr('generic');
+            var name = $(this).attr('name') || $(this).attr('lowercase');
+            var type = $(this).attr('type');
+            var position = $(this).attr('position');
+            var plural = $(this).attr('plural');
+            plural = (plural == 'null' ? null : plural == 'true');
+
+            var newClothing = new Clothing(name, generic, type, position, plural);
+
+            clothingArr.push(newClothing);
+        });
+
+        this.clothing = clothingArr;
+        this.initClothingStatus();
+
+        this.loadStylesheet();
+        this.stageChangeUpdate();
+    }
+}
+
+</script>
