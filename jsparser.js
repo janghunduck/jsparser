@@ -2,7 +2,6 @@
 filename : jsparser.js
 author : yoobi
 project : chartflow
-company :
 */
 
 /* level : 처음 <script>...</script>, js 파일의 스크립트가 들어올 경우 0, Brace Part가 들어올 경우 1  */
@@ -77,7 +76,8 @@ var jsparser = function (script, level, isShowComment) {
          //this.lines = " try { o = obj.init() } chatch (err) {} filnally {  } "
          //this.lines = "module.exports = { add:add, sub:sub } "      // module exports
          //this.lines = "var oFCKeditor = new FCKeditor( 'FCKeditor1' ) ;";
-         this.lines = " str.length == 0 ? x=0 : x= 1;";
+         //this.lines = " \n str.length == 0 ? x=0 : x= 1;";
+		 //this.lines = " if (str.length === 0){ x=0 } else { x= 1 }";
 
          // 마지막 끝을 알리는 문자 eof 가 없으면 넣어준다. 아래시작 시점에서 check 하지만 Test를 실행하기  위해 넣음
          var lastcode = this.lines.charCodeAt(this.lines.length);
@@ -123,7 +123,17 @@ var jsparser = function (script, level, isShowComment) {
                  case code === 59 || code === 0 || code === 10 || code === 13 || code === 0x2028 || code === 0x2029:    // [0=eof], [59=;], [10=line feed], [13=carrige return]
                      if (c_trim(this.nexttoken) != '') 
 						 this.tokenarray.push(this.nexttoken);
-                     // treeOperatortoIf  조건부 삼항연산자(ternary operator) str.length == 0 ? x=0 : x= 1 를 if 문으로 변경한다.
+                    
+					// str.length == 0 ? x=0 : x= 1; 를 if 문으로 변경한다.
+					// covertIf  조건부 삼항연산자(ternary operator) 
+					// 첫 라인이 대상일 경우 처리 안됨
+					 if ((this.isCompareCondition(this.nextline)) && (this.nextline.indexOf('?') !== -1)){
+						// 해당 string 를 뽑는다.
+                        var idx = this.nextline.indexOf(';')+1;	
+                        this.lines = this.lines.substring(idx+1);						
+                        this.lines = this.convertIf(this.nextline.substr(0, idx)) + '\n' + this.lines;
+						//console.log(this.lines);
+					 }
 					 
                      this.inserttoken();                                            // tokens 에 넣는다.
                      this.inittoken();                                              // 모두 초기화
@@ -134,11 +144,11 @@ var jsparser = function (script, level, isShowComment) {
                      if (this.eatwhitespace()) break;
 
                      this.nexttoken = c_trim(this.nexttoken);
-
+                     this.token = this.nexttoken;
                      //console.log("lines = %s", this.lines);
                      //console.log("backu = %s", this.backupline);
-                     //console.log("this.nexttoken=====>", this.nexttoken);
-
+                     console.log("this.nexttoken=====>", this.nexttoken);
+ 
                      this.setuptoken();                                             // 토큰을 가져와 임시 arr에 적재
                      this.skiptoken();
                      break;
@@ -156,20 +166,26 @@ var jsparser = function (script, level, isShowComment) {
                           for(var i=0;i < reqitems.length; i++){
                               this.tokenarray.push(reqitems[i]);
                           }
-                     } else {                                                      // ok! object, function
-                         //if (this.braceCharExist()){
-                             //var brace = this.getbracepart('{','}');
-                             var brace = this.lines.substr(0, this.getBraceEndCount('{', '}'));
-                             //console.log("[Main brace]=[%s]", brace);
-                             this.tokenarray.push(brace);                  // 모든 세부사항은 배열의 끝에 넣는다 여기서는 추적하지 않는다.
-                             this.lines = this.lines.substring (brace.length-1);
-                         //} else {
+                     } else {                                                      // ok! object, function, if, for, while
 
-                         //}
+                          var brace = this.lines.substr(0, this.getBraceEndCount('{', '}'));
+						  this.lines = c_trim_l(this.lines.substring (brace.length));
+					
+                          if (this.lines.substr(0, 'else'.length) === 'else'){     // {} else {} 처리 (if문)
+							  this.lines = this.lines.substring('else'.length);
+							  var elsebrace = this.lines.substr(0, this.getBraceEndCount('{', '}'));
+                              brace = brace + ' else '  + elsebrace;
+                              this.lines = this.lines.substring(elsebrace.length);
+						  }							  
+                          //console.log("[Main brace]=[%s]", brace);
+                          this.tokenarray.push(brace);                  // 모든 세부사항은 배열의 끝에 넣는다 여기서는 추적하지 않는다.
+                          
+						  // 다음, brace 를 재귀로 다시 parsing 한다.
+                          // this.recursion(brace);
                      }
 
                      if (this.currline.indexOf('try') !== -1 ){                     // try 처리
-
+                          console.log("try .................현재라인이 아닐수 있음. arraytoken 에서 try를 찾아야 함.");
                      }
 
                      /*
@@ -190,7 +206,7 @@ var jsparser = function (script, level, isShowComment) {
                          }
                      }
                      */
-                     this.skiptoken();
+                     //this.skiptoken();
                      break;
                  case a === '[':                                                        // array
                      //var brace = this.getbracepart('[',']');
@@ -248,19 +264,36 @@ jsparser.prototype.recursion = function(brace){
 
     var BRACE_END_TOKEN = '@';
     this.level = 1;
-    var count = charcount(brace, '\n');
-    this.linenumber = this.linenumber - count;
+    //var count = charcount(brace, '\n');
+    //this.linenumber = this.linenumber - count;
 
     // brace 에서 첫 {,  끝 } 를 지운다.
     brace = brace.substring(0);
     brace = brace.substr(0, brace.length-1);
-    this.lines = brace  + BRACE_END_TOKEN + this.lines;   // lines 에 기존 data 가 있음.
-
+	this.lines = brace  + BRACE_END_TOKEN + this.lines;   // lines 에 기존 data 가 있음.
+	
+    
     while(this.lines){
         getnexttoken();
     }
 }
 
+jsparser.prototype.isCompareCondition = function(str){
+    var arr = makearray('==','===','!=','!==','>','<','>=','<=','!');
+	for(var i=0;i<arr.length;i++){
+		return str.indexOf(arr[i]) !== -1;	
+	}
+}	
+
+jsparser.prototype.convertIf = function(str){
+	console.log("변환을 시작한다. [%s]", str); 
+	var arrcond = str.split('?');
+	var ifstr = ' if(' + arrcond[0] + '){';
+	var arrtail = arrcond[1].split(':');
+	ifstr += arrtail[0] + '} else {'
+	ifstr += arrtail[1] + '}';	
+	return ifstr;
+}
 
 /* 기본적으로 Text 로 처리한다. */
 /* require('aaa.js'); 의 경우 require 토큰 처리시 따로 처리한다. */
@@ -291,7 +324,23 @@ jsparser.prototype.getmatchtag = function(){
 }
 
 // object or function 의 { {} } 와 같이 중첩 brace를 count 해서 object의 끝과 함께 Object 전체 스트링을 뽑는다.
-// 아래것으로 대체
+jsparser.prototype.getBraceEndCount = function(startchar, endchar){
+    var depth = 0;
+    for (var i=0; i<this.lines.length; i++){
+        var char = this.lines.charAt(i);
+        if (char === startchar){
+            depth++;
+        } else if(char === endchar){
+            depth--;
+            if (depth === 0){
+                return i+1;
+            }
+        }
+    }
+}
+
+
+// 위의 것으로 대체
 jsparser.prototype.getBraceEndCount___ = function(startchar, endchar){
     var depth = 0;
     var count = function (str) {
@@ -310,20 +359,7 @@ jsparser.prototype.getBraceEndCount___ = function(startchar, endchar){
     return count(this.lines);
 }
 
-jsparser.prototype.getBraceEndCount = function(startchar, endchar){
-    var depth = 0;
-    for (var i=0; i<this.lines.length; i++){
-        var char = this.lines.charAt(i);
-        if (char === startchar){
-            depth++;
-        } else if(char === endchar){
-            depth--;
-            if (depth === 0){
-                return i+1;
-            }
-        }
-    }
-}
+
 
 /* s.match(/\{(.*)\}/s) 를 대체한다. 에러가 있어서 getBraceEndCount 로 대체함. */
 // 추후 지울것
@@ -950,14 +986,17 @@ jsparser.prototype.setuptoken = function() {
         this.tokenarray.push(str);
         this.lines = this.lines.substring(str.length-1);
 
-
     } else if (this.token === 'require') {
         var idx = this.lines.indexOf(')');
         var str = this.lines.substr(0, idx);
         str = rangestr(str, "'", "'");
         this.tokenarray.push(str);
         this.lines = this.lines.substring(idx);
-    }
+		
+    } else if (this.token === 'try') {
+		// 여기서는 아무것도 할 필요가 없음
+		// console.log("try setup.......");
+	}
 
 }
 
