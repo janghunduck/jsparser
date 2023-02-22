@@ -77,6 +77,7 @@ var jsparser = function (script, level, isShowComment) {
          //this.lines = " try { o = obj.init() } chatch (err) {} filnally {  } "
          //this.lines = "module.exports = { add:add, sub:sub } "      // module exports
          //this.lines = "var oFCKeditor = new FCKeditor( 'FCKeditor1' ) ;";
+         this.lines = " str.length == 0 ? x=0 : x= 1;";
 
          // 마지막 끝을 알리는 문자 eof 가 없으면 넣어준다. 아래시작 시점에서 check 하지만 Test를 실행하기  위해 넣음
          var lastcode = this.lines.charCodeAt(this.lines.length);
@@ -95,52 +96,44 @@ var jsparser = function (script, level, isShowComment) {
              //console.log("%s", a);
              switch (true) {
 
-                 case a === "'":
+                 case a === "'" || a === '"':
                      this.skiptoken();
                      this.insertstring(a);
                      break;
-                 /*case a === '"':
-                     this.addone();
-                     break;
-                     */
-                 case a === '\t':
+                 case a === '}' || a === ']' || a === ')' || a === '\t' || a === '^':   // ^ : BRACE_END_TOKEN
                      this.skiptoken();
                      break;
-                  case a === '!':
-                      if (this.nextchar === '-') {                                 //<!-- --> comment, html 파일 안에서 <script> 태크 안에서 Html주석을 넣을 수 있다.
+                 case a === '!':
+                      if (this.nextchar === '-') {                                      //<!-- --> comment, html 파일 안에서 <script> 태크 안에서 Html주석을 넣을 수 있다.
                            var idx = this.lines.indexOf('-->') + 1;
                            this.lines = this.lines.substring(idx + '-->'.length);
                       }
                      break;
                  case a === '<':
-                     if (this.nextchar === '!') {                                 // <!-- --> comment , <!DOCTYPE HTML ....>  skip, 처리는 ! 에서 삭제
+                     if (this.nextchar === '!') {                                        // <!-- --> comment , <!DOCTYPE HTML ....>  skip, 처리는 ! 에서 삭제
                          this.skiptoken();
                      } else {
                          this.addone();
                      }
                      break;
-                 case (a >= 'A' && a <= 'Z') || (a >= 'a' && a <= 'z') || a === '_' || a === '@' || a === '-':  // 문자
-                     //console.log("a=", a);
+                 case (a >= 'A' && a <= 'Z') || (a >= 'a' && a <= 'z') || (a >= '0' && a <= '9') ||  
+				       a === '_' || a === '@' || a === '-' || a === '+' || a === '%' || a === ':' || a === '>':  
                      this.addone();
-                     break;
-                 case (a >= '0' && a <= '9') || a === '+' || a === '%' || a === ':' || a === '>':
-                     this.addone();
-                     break;
-                 case code === 59 || code === 0 || code === 10 || code === 13 || code === 0x2028 || code === 0x2029: // 0: eof, 59: ;
-
-                     this.nexttoken = this.nexttoken.c_trim(this.nexttoken);
-                     //console.log("this.nexttoken=====>", this.nexttoken);
-                     if (this.nexttoken != '') this.tokenarray.push(this.nexttoken);
-
+                     break; 
+                 case code === 59 || code === 0 || code === 10 || code === 13 || code === 0x2028 || code === 0x2029:    // [0=eof], [59=;], [10=line feed], [13=carrige return]
+                     if (c_trim(this.nexttoken) != '') 
+						 this.tokenarray.push(this.nexttoken);
+                     // treeOperatortoIf  조건부 삼항연산자(ternary operator) str.length == 0 ? x=0 : x= 1 를 if 문으로 변경한다.
+					 
                      this.inserttoken();                                            // tokens 에 넣는다.
                      this.inittoken();                                              // 모두 초기화
                      this.skiptoken();
                      break;
 
-                 case a === ' ' || a === '=' || a === '(' || a === '.':             // code = 32
+                 case a === ' ' || a === '=' || a === '(' || a === '.':             // [32=공백]
                      if (this.eatwhitespace()) break;
 
-                     this.nexttoken = this.nexttoken.c_trim(this.nexttoken);
+                     this.nexttoken = c_trim(this.nexttoken);
 
                      //console.log("lines = %s", this.lines);
                      //console.log("backu = %s", this.backupline);
@@ -148,18 +141,15 @@ var jsparser = function (script, level, isShowComment) {
 
                      this.setuptoken();                                             // 토큰을 가져와 임시 arr에 적재
                      this.skiptoken();
-
                      break;
                  case a === ',':
                      this.token = this.nexttoken;
-
                      this.tokenseq++;
                      this.skiptoken();
                      break;
                  case a === '{':                                                   // 함수 or 객체에 해당 or let {ab, cd} = require('');
 
                      var arr = this.lines.split("=");
-
                      if ((this.recognizeallnotfunction()) && (arr.length > 1)){    // ok!  let {ab, cd} = require('');
                           var identreq = rangestr(arr[0], '{', '}');
                           var reqitems = identreq.split(',');
@@ -191,7 +181,6 @@ var jsparser = function (script, level, isShowComment) {
                      } else if(this.findkeyfromarr('prototype') != -1) {
                          this.lines = this.lines.substring ((arr[0] || []).length);    // prototype function
                      }
-
                      if (this.tokenarray[0] === 'var'){
                          console.log("regexr match====>", arr.toString(), (arr[0] || []).length);
                          if ((arr[0] || []).length > 0) {
@@ -225,18 +214,10 @@ var jsparser = function (script, level, isShowComment) {
                          this.addone();
                          break;
                      }
-
-                 case a === '}' || a === ']' || a === ')':
-                     this.skiptoken();
-                     break;
                  //case a === '#':
                  //    this.skiptoken();
                  //    break;
                  case a === '$':                                                      // jquery
-                     this.setupjquery();
-                     this.skiptoken();
-                     break;
-                 case a === '@':                                                      // BRACE_END_TOKEN
                      this.setupjquery();
                      this.skiptoken();
                      break;
@@ -1064,7 +1045,6 @@ jsparser.prototype.initkeywords = function(){
     var items = Object.keys(this.keywords);  // Keys 는 구 IE에서 작동하지 않는다.
     for (var i = 0; i < items.length; i++) {
         items[i] = false;
-
     }
 }
 */

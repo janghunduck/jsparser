@@ -61,7 +61,7 @@ var Parhtml = function (html, targetfile) {
                     break;
                 case a === '\n' || a === '\t':
 
-                    this.nexttoken = this.nexttoken.c_trim(this.nexttoken);
+                    this.nexttoken = c_trim(this.nexttoken);
                     //console.log("A: [%s]", this.nexttoken);
                     if (this.nexttoken !== '') {
                         this.updatetokendata(this.tokenobj.length-1, 'data', this.nexttoken);
@@ -96,7 +96,7 @@ var Parhtml = function (html, targetfile) {
                     break;
                 case a === '<':
                     
-                    this.nexttoken = this.nexttoken.c_trim(this.nexttoken);
+                    this.nexttoken = c_trim(this.nexttoken);
                     if (this.isCommentordoctype(a)) {                                 // <!-- --> comment , <!DOCTYPE HTML ....>  skip, 처리는 ! 에서 삭제
                          this.skiptoken();
                          break;
@@ -114,9 +114,9 @@ var Parhtml = function (html, targetfile) {
                     break;
                 case a === '>':
 
-                    //if (this.nexttoken.c_trim(this.nexttoken) === ''){  this.skiptoken(); break; }
+                    //if (c_trim(this.nexttoken) === ''){  this.skiptoken(); break; }
                     if ((isDepthEnd) && (!isMetalink)) { this.skiptoken(); break; };                 // depth 가 마지막이면 나감 depth === 0 경우
-                    this.nexttoken = this.nexttoken.c_trim(this.nexttoken);
+                    this.nexttoken = c_trim(this.nexttoken);
                     this.token = this.nexttoken;
                     this.depth++;                            // metalink 때문에 insert 전에 먼저 depth를 증가시겨줘야 함 아래에걸 이동.
                     if (this.nexttoken !== '') {

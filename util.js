@@ -178,7 +178,7 @@ String.prototype.trim = function() {
 <![endif]-->
 */
 
-
+/*
 function trim_l(s){
     if (s === '') return '';
     while(s){
@@ -192,50 +192,10 @@ function trim_l(s){
         if (s.length === 0)  return s;
     }
 }
-
-function trim_r(s){
-    if (s === '') return '';
-    while(s){
-        var c = s.charAt(s.length-1);
-        if (c === ' '){
-            s = s.substring(s.length-1, 1);
-        } else {
-            return s;
-        }
-        if (s.length === 0)  return s;
-   }
-}
-
-// flowjs를 통해서는 호출되지 않음.
-function trim(s){
-    s = trim_l(s);
-    s = trim_r(s);
-    
-    return s;
-}
-
-
-
-/*
-String.prototype.c_trim_l = function(s){
-    if (s === '') return '';
-    while(s){
-        var c = s.charAt(0);
-        if (c === ' '){
-            s = s.substring(1);
-        } else {
-            break;
-        }
-
-        if (s.length === 0)  return s;
-    }
-    return s;
-}
-
 */
 
-String.prototype.c_trim_l = function(s){
-    if (s === '') return '';
+function c_trim_l(s){
+	if (s === '') return '';
     //console.log("[%s]",s);
     var count = 0;
     for (var i=0; i <= s.length-1; i++){
@@ -252,8 +212,7 @@ String.prototype.c_trim_l = function(s){
     return s;
 }
 
-
-String.prototype.c_trim_r = function(s){
+function c_trim_r(s){
     if (s === '') return '';
     //console.log("[%s]",s);
     for (var i=s.length-1; i >= 0; i--){
@@ -270,11 +229,11 @@ String.prototype.c_trim_r = function(s){
     return s;
 }
 
-// 이것을 사용할 것
-String.prototype.c_trim = function(s){
-    s = s.c_trim_l(s);
-    s = s.c_trim_r(s);
-
+// flowjs를 통해서는 호출되지 않음.
+function c_trim(s){
+    s = c_trim_l(s);
+    s = c_trim_r(s);
+    
     return s;
 }
 
