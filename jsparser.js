@@ -78,6 +78,8 @@ var jsparser = function (script, level, isShowComment) {
          //this.lines = "var oFCKeditor = new FCKeditor( 'FCKeditor1' ) ;";
          //this.lines = " \n str.length == 0 ? x=0 : x= 1;";
 		 //this.lines = " if (str.length === 0){ x=0 } else { x= 1 }";
+		    /* 라인 테스트 항목 ?  주석문, brace part */
+		 //this.lines = " function a(){ \n } \n  function b() { \n } \n function c() { \n } \n function d() { \n } \n";   // linenumber 8
 
          // 마지막 끝을 알리는 문자 eof 가 없으면 넣어준다. 아래시작 시점에서 check 하지만 Test를 실행하기  위해 넣음
          var lastcode = this.lines.charCodeAt(this.lines.length);
@@ -180,8 +182,11 @@ var jsparser = function (script, level, isShowComment) {
                           //console.log("[Main brace]=[%s]", brace);
                           this.tokenarray.push(brace);                  // 모든 세부사항은 배열의 끝에 넣는다 여기서는 추적하지 않는다.
                           
-						  // 다음, brace 를 재귀로 다시 parsing 한다.
+						  // 1.다음, brace 를 재귀로 다시 parsing 한다.
                           // this.recursion(brace);
+						  
+						  // 2. object, function, if .. 에 맞게 각자 입맞에 맞게 파싱한다
+						  
                      }
 
                      if (this.currline.indexOf('try') !== -1 ){                     // try 처리
@@ -725,9 +730,9 @@ jsparser.prototype.inserttoken = function() {
                 var arr = this.backupline.split("=");                        //   var a; \n var b  인경우 처리 되지만,  var a; var b; \n인 경우 처리 안됨.
 
                 if (arr.length === 2){
-                    if (arr[1].c_trim(arr[1]).charAt(0) === '['){
+                    if (c_trim(arr[1]).charAt(0) === '['){
                         this.tokenarray.unshift('tp_va');                    // var array  => var a = []
-                    } else if (arr[1].c_trim(arr[1]).charAt(0) === '{'){
+                    } else if (c_trim(arr[1]).charAt(0) === '{'){
                         this.tokenarray.unshift('tp_vo');                    // var object => var a = {};
                     } else {
                         this.tokenarray.unshift('tp_gv');                    // geneal var => var a = ''; \n var b = 0
@@ -742,9 +747,9 @@ jsparser.prototype.inserttoken = function() {
                 var arr = this.backupline.split("=");                        //   let a; \n var b  인경우 처리 되지만,  var a; var b; \n인 경우 처리 안됨.
 
                 if (arr.length === 2){
-                    if (arr[1].c_trim(arr[1]).charAt(0) === '['){
+                    if (c_trim(arr[1]).charAt(0) === '['){
                         this.tokenarray.unshift('tp_ca');                    // const array  => const a = []
-                    } else if (arr[1].c_trim(arr[1]).charAt(0) === '{'){
+                    } else if (c_trim(arr[1]).charAt(0) === '{'){
                         this.tokenarray.unshift('tp_co');                    // const object => const a = {};
                     } else {
                         this.tokenarray.unshift('tp_gc');                    // geneal const => const a = ''; \n var b = 0
@@ -759,9 +764,9 @@ jsparser.prototype.inserttoken = function() {
                 var arr = this.backupline.split("=");                        //   let a; \n var b  인경우 처리 되지만,  var a; var b; \n인 경우 처리 안됨.
 
                 if (arr.length === 2){
-                    if (arr[1].c_trim(arr[1]).charAt(0) === '['){
+                    if (c_trim(arr[1]).charAt(0) === '['){
                         this.tokenarray.unshift('tp_la');                    // let array  => var a = []
-                    } else if (arr[1].c_trim(arr[1]).charAt(0) === '{'){
+                    } else if (c_trim(arr[1]).charAt(0) === '{'){
                         this.tokenarray.unshift('tp_lo');                    // let object => var a = {};
                     } else {
                         this.tokenarray.unshift('tp_gl');                    // geneal let => var a = ''; \n var b = 0
@@ -769,7 +774,10 @@ jsparser.prototype.inserttoken = function() {
                 } else {
                     this.tokenarray.unshift('tp_gl_non');                        // tp_gl_non  :  let a;
                 }
+        } else if (this.findkeyfromarr('try') !== -1){
+                this.tokenarray.unshift('tp_try');  
 
+		
         /* ----------------------------------------------------- */
         // tp_if  : Immediately invoked function
         /* ----------------------------------------------------- */
