@@ -34,6 +34,9 @@ var jsparser = function (script, level, isShowComment) {
          this.keywords = makearray("var,let,const,function,new,prototype");
          this.skipkeywords = makearray("console,alert");
 
+
+
+
          //this.lines = "var ab    =   function  () {  \n  alert('ab')  {         {}        } } ";
          //this.lines = "   var xy = '';  \n function ab(){           x       }  ";
          //this.lines = " function ab   () {   \n } ";
