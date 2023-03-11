@@ -13,8 +13,10 @@ echo  ==================== git cconfig ==========================
 git config --list
 
 git remote add origin https://github.com/janghunduck/jsparser.git
-echo master is this(노예) so, change main.
-git pull origin master
+rem master is this(노예) so, change main.
+rem git pull origin master
 git push origin master
+
+
 
 pause
